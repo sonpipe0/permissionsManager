@@ -1,4 +1,5 @@
 FROM gradle:8.10.1-jdk21 AS builder
+LABEL org.opencontainers.image.source=https://github.com/sonpipe0/pemissionsManager
 COPY . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN  gradle build
