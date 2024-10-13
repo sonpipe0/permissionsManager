@@ -1,15 +1,12 @@
 package com.printScript.permissionsManager.entities;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.UUID;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -18,21 +15,11 @@ import java.util.UUID;
 @NoArgsConstructor
 public class User {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", unique = true)
     private String userId;
 
-    @Column
-    private String name;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<SnippetPermission> snippetPermissions;
 
-    @Column
-    private String email;
-
-    @Column
-    private Integer hash;
-
-    @Column
-    private String salt;
-
-    @Column
-    private String role;
 }

@@ -1,32 +1,51 @@
 package com.printScript.permissionsManager.services;
 
 
+import com.printScript.permissionsManager.entities.SnippetPermission;
 import com.printScript.permissionsManager.entities.User;
+import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
 import com.printScript.permissionsManager.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class SnippetPermissionService {
 
     @Autowired
-    WebClientService webClientService;
-
-    @Autowired
     UserRepository userRepository;
 
-    public boolean hasAccess(String fileName, String user) {
+    @Autowired
+    SnippetPermissionRepository snippetPermissionRepository;
 
-        User userEntity = userRepository.findByEmail(user);
-        String url = "http://localhost:8080/permissions?fileName=" + fileName + "&user=" + user;
-        String response = webClientService.get(url).block();
-        switch (response) {
-            case "true":
-                return true;
-            case "false":
-                return false;
-            default:
-                throw new RuntimeException("Unexpected response from permissions service: " + response);
+    public boolean hasAccess(String snippetId, String user) {
+        Optional<User> userEntity = userRepository.findById(user);
+        if (userEntity.isEmpty()) {
+            return false;
         }
+        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
+        if (snippetPermission.isPresent()) {
+            return snippetPermission.get().getUser().equals(userEntity.get());
+        } else {
+            return false;
+        }
+    }
+
+    public boolean hasAccessSave(String snippetId, String user) {
+        Optional<User> userEntity = userRepository.findById(user);
+        if (userEntity.isEmpty()) {
+            return false;
+        }
+        SnippetPermission snippetPermission = new SnippetPermission(snippetId, userEntity.get());
+        snippetPermissionRepository.save(snippetPermission);
+        return true;
+    }
+
+    public ResponseEntity<Object> createUser() {
+        User user = new User();
+        userRepository.save(user);
+        return ResponseEntity.ok(user.getUserId());
     }
 }
