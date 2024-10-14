@@ -1,16 +1,21 @@
 package com.printScript.permissionsManager.config;
 
+import com.printScript.permissionsManager.services.WebClientService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.function.client.WebClient;
-
 
 @Configuration
 public class WebClientConfig {
 
     @Bean
-    public WebClient.Builder webClientBuilder() {
-        return WebClient.builder();
+    public WebClientService printScriptWebClient() {
+        WebClientService webClientService = new WebClientService();
+        return webClientService.printScriptWebClient();
     }
 
+    @Bean
+    public WebClientService snippetServiceWebClient() {
+        WebClientService webClientService = new WebClientService();
+        return webClientService.snippetServiceWebClient();
+    }
 }

@@ -23,7 +23,7 @@ public class SnippetPermissionController {
         return snippetPermissionService.hasAccess(snippetId, user);
     }
 
-    @PostMapping("/hasAccess/save")
+    @PostMapping("/load/relationship")
     public ResponseEntity<Object> hasAccessSave(@RequestBody SnippetTuple snippetTuple) {
         HashMap<String,Object> response = new HashMap<>();
         response.put("hasPassed",snippetPermissionService.hasAccessSave(snippetTuple.snippetId(), snippetTuple.userId()));

@@ -19,6 +19,12 @@ public class User {
     @Column(name = "id", unique = true)
     private String userId;
 
+    @Column(name = "username", unique = true)
+    private String username;
+
+    @Column(name = "password")
+    private String password;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<SnippetPermission> snippetPermissions;
 
