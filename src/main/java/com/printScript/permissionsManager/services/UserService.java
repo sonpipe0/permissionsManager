@@ -8,13 +8,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
+
     @Autowired
     UserRepository userRepository;
 
-    public ResponseEntity<Object> createUser(String username, String password) {
+    public ResponseEntity<Object> createUser(String email) {
         User user = new User();
-        user.setUsername(username);
-        user.setPassword(password);
+        user.setEmail(email);
         userRepository.save(user);
         return ResponseEntity.ok(user.getUserId());
     }

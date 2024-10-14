@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 
 @RestController
-@RequestMapping("/snippet")
+@RequestMapping("/snippets")
 public class SnippetPermissionController {
 
     @Autowired
@@ -23,7 +23,7 @@ public class SnippetPermissionController {
         return snippetPermissionService.hasAccess(snippetId, user);
     }
 
-    @PostMapping("/load/relationship")
+    @PostMapping("/save/relationship")
     public ResponseEntity<Object> hasAccessSave(@RequestBody SnippetTuple snippetTuple) {
         HashMap<String,Object> response = new HashMap<>();
         response.put("hasPassed",snippetPermissionService.hasAccessSave(snippetTuple.snippetId(), snippetTuple.userId()));

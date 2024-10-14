@@ -16,11 +16,11 @@ public class UserController {
 
     @Autowired
     UserService userService;
-    @PostMapping("/create")
+
+    @PostMapping("/register")
     public ResponseEntity<Object> createUser(@RequestBody Map<String,Object> body) {
-        String username = (String) body.get("username");
-        String password = (String) body.get("password");
-        ResponseEntity<Object> response = userService.createUser(username, password);
+        String email = (String) body.get("email");
+        ResponseEntity<Object> response = userService.createUser(email);
         return response;
     }
 }
