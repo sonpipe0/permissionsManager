@@ -1,6 +1,8 @@
 package com.printScript.permissionsManager.services;
 
 
+import com.printScript.permissionsManager.DTO.Error;
+import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.entities.SnippetPermission;
 import com.printScript.permissionsManager.entities.User;
 import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
@@ -21,24 +23,26 @@ public class SnippetPermissionService {
 
     public boolean hasAccess(String snippetId, String user) {
         Optional<User> userEntity = userRepository.findById(user);
-        if (userEntity.isEmpty()) {
-            return false;
-        }
+        if(userEntity.isEmpty()) return false;
         Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
-        if (snippetPermission.isPresent()) {
-            return snippetPermission.get().getUser().equals(userEntity.get());
-        } else {
-            return false;
+        if(snippetPermission.isEmpty()) return false;
+        return snippetPermission.get().getUser().equals(userEntity.get());
+    }
+
+    public Response<Boolean> hasAccessSave(String snippetId, String user) {
+        if(!isRegistered(user)) return Response.withError(new Error(404, "User not registered"));
+        try {
+            User userEntity = userRepository.findById(user).get();
+            SnippetPermission snippetPermission = new SnippetPermission(snippetId, userEntity);
+            snippetPermissionRepository.save(snippetPermission);
+            return Response.withData(true);
+        } catch (Exception e) {
+            return Response.withError(new Error(500, e.getMessage()));
         }
     }
 
-    public boolean hasAccessSave(String snippetId, String user) {
+    private boolean isRegistered(String user) {
         Optional<User> userEntity = userRepository.findById(user);
-        if (userEntity.isEmpty()) {
-            return false;
-        }
-        SnippetPermission snippetPermission = new SnippetPermission(snippetId, userEntity.get());
-        snippetPermissionRepository.save(snippetPermission);
-        return true;
+        return userEntity.isPresent();
     }
 }
