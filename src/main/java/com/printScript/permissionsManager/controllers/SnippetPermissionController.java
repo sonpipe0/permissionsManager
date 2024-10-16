@@ -1,5 +1,6 @@
 package com.printScript.permissionsManager.controllers;
 
+import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.DTO.SnippetTuple;
 import com.printScript.permissionsManager.services.SnippetPermissionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +26,11 @@ public class SnippetPermissionController {
 
     @PostMapping("/save/relationship")
     public ResponseEntity<Object> hasAccessSave(@RequestBody SnippetTuple snippetTuple) {
-        HashMap<String,Object> response = new HashMap<>();
-        response.put("hasPassed",snippetPermissionService.hasAccessSave(snippetTuple.snippetId(), snippetTuple.userId()));
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        Response<Boolean> hasPassed = snippetPermissionService.hasAccessSave(snippetTuple.snippetId(), snippetTuple.userId());
+        if (hasPassed.isError()) {
+            return new ResponseEntity<>(hasPassed.getError().message(), HttpStatus.valueOf(hasPassed.getError().code()));
+        }
+        return ResponseEntity.ok().build();
     }
 
 }
