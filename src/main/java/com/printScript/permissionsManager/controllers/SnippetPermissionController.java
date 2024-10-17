@@ -19,13 +19,12 @@ public class SnippetPermissionController {
     SnippetPermissionService snippetPermissionService;
 
     @GetMapping("hasAccess")
-    public ResponseEntity<Object> hasAccess(@RequestParam String snippetId, @RequestParam String user) {
-        boolean access = snippetPermissionService.hasAccess(snippetId, user);
-        if (access) {
-            return ResponseEntity.ok().build();
-        } else {
+    public ResponseEntity<Object> hasAccess(@RequestParam String snippetId, @RequestParam String userId) {
+        boolean access = snippetPermissionService.hasAccess(snippetId, userId);
+        if (!access) {
             return new ResponseEntity<>("Access Denied", HttpStatus.FORBIDDEN);
         }
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/save/relationship")
