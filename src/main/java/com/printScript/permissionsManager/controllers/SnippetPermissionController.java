@@ -18,10 +18,14 @@ public class SnippetPermissionController {
     @Autowired
     SnippetPermissionService snippetPermissionService;
 
-
     @GetMapping("hasAccess")
-    public boolean hasAccess(String snippetId, String user) {
-        return snippetPermissionService.hasAccess(snippetId, user);
+    public ResponseEntity<Object> hasAccess(@RequestParam String snippetId, @RequestParam String user) {
+        boolean access = snippetPermissionService.hasAccess(snippetId, user);
+        if (access) {
+            return ResponseEntity.ok().build();
+        } else {
+            return new ResponseEntity<>("Access Denied", HttpStatus.FORBIDDEN);
+        }
     }
 
     @PostMapping("/save/relationship")
@@ -32,5 +36,4 @@ public class SnippetPermissionController {
         }
         return ResponseEntity.ok().build();
     }
-
 }
