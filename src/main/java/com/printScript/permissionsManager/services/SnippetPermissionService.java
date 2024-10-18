@@ -21,12 +21,12 @@ public class SnippetPermissionService {
     @Autowired
     SnippetPermissionRepository snippetPermissionRepository;
 
-    public boolean hasAccess(String snippetId, String user) {
-        Optional<User> userEntity = userRepository.findById(user);
-        if(userEntity.isEmpty()) return false;
+    public boolean hasAccess(String snippetId, String userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if(user.isEmpty()) return false;
         Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
         if(snippetPermission.isEmpty()) return false;
-        return snippetPermission.get().getUser().equals(userEntity.get());
+        return snippetPermission.get().getUser().equals(user.get());
     }
 
     public Response<Boolean> hasAccessSave(String snippetId, String user) {
