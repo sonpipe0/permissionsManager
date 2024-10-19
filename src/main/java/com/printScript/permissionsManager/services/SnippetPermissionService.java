@@ -1,6 +1,5 @@
 package com.printScript.permissionsManager.services;
 
-
 import com.printScript.permissionsManager.DTO.Error;
 import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.entities.SnippetPermission;
@@ -21,28 +20,25 @@ public class SnippetPermissionService {
     @Autowired
     SnippetPermissionRepository snippetPermissionRepository;
 
-    public boolean hasAccess(String snippetId, String userId) {
+    public Response<Boolean> hasAccess(String snippetId, String userId) {
         Optional<User> user = userRepository.findById(userId);
-        if(user.isEmpty()) return false;
+        if(user.isEmpty()) return Response.withError(new Error(404, "User not registered"));
         Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
-        if(snippetPermission.isEmpty()) return false;
-        return snippetPermission.get().getUser().equals(user.get());
+        if(snippetPermission.isEmpty()) return Response.withError(new Error(404, "Snippet not found"));
+
+        boolean hasAccess = snippetPermission.get().getUser().equals(user.get());
+        return Response.withData(hasAccess);
     }
 
-    public Response<Boolean> hasAccessSave(String snippetId, String user) {
-        if(!isRegistered(user)) return Response.withError(new Error(404, "User not registered"));
+    public Response<String> saveRelation(String snippetId, String userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if(user.isEmpty()) return Response.withError(new Error(404, "User not registered"));
         try {
-            User userEntity = userRepository.findById(user).get();
-            SnippetPermission snippetPermission = new SnippetPermission(snippetId, userEntity);
+            SnippetPermission snippetPermission = new SnippetPermission(snippetId, user.get());
             snippetPermissionRepository.save(snippetPermission);
-            return Response.withData(true);
+            return Response.withData("Relationship saved");
         } catch (Exception e) {
             return Response.withError(new Error(500, e.getMessage()));
         }
-    }
-
-    private boolean isRegistered(String user) {
-        Optional<User> userEntity = userRepository.findById(user);
-        return userEntity.isPresent();
     }
 }
