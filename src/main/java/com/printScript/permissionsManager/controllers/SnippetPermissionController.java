@@ -19,8 +19,8 @@ public class SnippetPermissionController {
     SnippetPermissionService snippetPermissionService;
 
     @GetMapping("hasAccess")
-    public ResponseEntity<Object> hasAccess(@RequestParam String snippetId, @RequestParam String userId) {
-        Response<Boolean> access = snippetPermissionService.hasAccess(snippetId, userId);
+    public ResponseEntity<Object> hasAccess(@RequestBody SnippetTuple snippetTuple) {
+        Response<Boolean> access = snippetPermissionService.hasAccess(snippetTuple.snippetId(), snippetTuple.userId());
         if (!access.getData()) {
             return new ResponseEntity<>("Access Denied", HttpStatus.FORBIDDEN);
         }
