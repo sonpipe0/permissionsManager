@@ -2,6 +2,7 @@ package com.printScript.permissionsManager.controllers;
 
 import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.DTO.SnippetTuple;
+import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.services.SnippetPermissionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,16 @@ public class SnippetPermissionController {
 
     @PostMapping("/save/relationship")
     public ResponseEntity<Object> saveRelation(@RequestBody SnippetTuple snippetTuple) {
-        Response<String> hasPassed = snippetPermissionService.saveRelation(snippetTuple.snippetId(), snippetTuple.userId());
+        Response<String> hasPassed = snippetPermissionService.saveRelation(snippetTuple.snippetId(), snippetTuple.userId(), GrantType.WRITE);
+        if (hasPassed.isError()) {
+            return new ResponseEntity<>(hasPassed.getError().message(), HttpStatus.valueOf(hasPassed.getError().code()));
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/save/share/relationship")
+    public ResponseEntity<Object> saveShareRelation(@RequestBody SnippetTuple snippetTuple) {
+        Response<String> hasPassed = snippetPermissionService.saveRelation(snippetTuple.snippetId(), snippetTuple.userId(), GrantType.READ);
         if (hasPassed.isError()) {
             return new ResponseEntity<>(hasPassed.getError().message(), HttpStatus.valueOf(hasPassed.getError().code()));
         }
