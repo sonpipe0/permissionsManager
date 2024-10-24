@@ -37,6 +37,20 @@ public class SnippetPermissionService {
         return Response.withData(hasAccess);
     }
 
+    public Response<Boolean> canEdit(String snippetId, String userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty())
+            return Response.withError(new Error(404, "User not registered"));
+        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
+        if (snippetPermission.isEmpty())
+            return Response.withError(new Error(404, "Snippet not found"));
+
+        boolean canEdit = snippetPermission.get().getUserGrantTypes().stream()
+                .anyMatch(userGrantType -> userGrantType.getUser().equals(user.get())
+                        && userGrantType.getGrantType().equals(GrantType.WRITE));
+        return Response.withData(canEdit);
+    }
+
     public Response<String> saveRelation(String snippetId, String userId, GrantType grantType) {
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty())

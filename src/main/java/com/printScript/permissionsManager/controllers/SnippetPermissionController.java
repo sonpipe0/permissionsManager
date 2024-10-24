@@ -26,6 +26,15 @@ public class SnippetPermissionController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("canEdit")
+    public ResponseEntity<Object> canEdit(@RequestParam String snippetId, @RequestParam String userId) {
+        Response<Boolean> canEdit = snippetPermissionService.canEdit(snippetId, userId);
+        if (!canEdit.getData()) {
+            return new ResponseEntity<>("Access Denied", HttpStatus.FORBIDDEN);
+        }
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/save/relationship")
     public ResponseEntity<Object> saveRelation(@RequestBody SnippetTuple snippetTuple) {
         Response<String> hasPassed = snippetPermissionService.saveRelation(snippetTuple.snippetId(),
