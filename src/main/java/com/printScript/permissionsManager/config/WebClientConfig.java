@@ -1,8 +1,9 @@
 package com.printScript.permissionsManager.config;
 
-import com.printScript.permissionsManager.services.WebClientService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.printScript.permissionsManager.services.WebClientService;
 
 @Configuration
 public class WebClientConfig {
