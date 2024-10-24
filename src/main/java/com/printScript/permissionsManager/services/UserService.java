@@ -1,10 +1,11 @@
 package com.printScript.permissionsManager.services;
 
-import com.printScript.permissionsManager.entities.User;
-import com.printScript.permissionsManager.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import com.printScript.permissionsManager.entities.User;
+import com.printScript.permissionsManager.repositories.UserRepository;
 
 @Service
 public class UserService {

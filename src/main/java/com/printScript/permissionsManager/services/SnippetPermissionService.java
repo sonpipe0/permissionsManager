@@ -1,5 +1,11 @@
 package com.printScript.permissionsManager.services;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.printScript.permissionsManager.DTO.Error;
 import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.entities.GrantType;
@@ -8,11 +14,6 @@ import com.printScript.permissionsManager.entities.User;
 import com.printScript.permissionsManager.entities.UserGrantType;
 import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
 import com.printScript.permissionsManager.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class SnippetPermissionService {
@@ -25,9 +26,11 @@ public class SnippetPermissionService {
 
     public Response<Boolean> hasAccess(String snippetId, String userId) {
         Optional<User> user = userRepository.findById(userId);
-        if(user.isEmpty()) return Response.withError(new Error(404, "User not registered"));
+        if (user.isEmpty())
+            return Response.withError(new Error(404, "User not registered"));
         Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
-        if(snippetPermission.isEmpty()) return Response.withError(new Error(404, "Snippet not found"));
+        if (snippetPermission.isEmpty())
+            return Response.withError(new Error(404, "Snippet not found"));
 
         boolean hasAccess = snippetPermission.get().getUserGrantTypes().stream()
                 .anyMatch(userGrantType -> userGrantType.getUser().equals(user.get()));
@@ -36,7 +39,8 @@ public class SnippetPermissionService {
 
     public Response<String> saveRelation(String snippetId, String userId, GrantType grantType) {
         Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) return Response.withError(new Error(404, "User not registered"));
+        if (user.isEmpty())
+            return Response.withError(new Error(404, "User not registered"));
 
         try {
             // Crear una nueva instancia de SnippetPermission

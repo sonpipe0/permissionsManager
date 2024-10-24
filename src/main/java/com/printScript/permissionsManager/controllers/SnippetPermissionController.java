@@ -1,16 +1,14 @@
 package com.printScript.permissionsManager.controllers;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.DTO.SnippetTuple;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.services.SnippetPermissionService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
 
 @RestController
 @RequestMapping("/snippets")
@@ -20,8 +18,8 @@ public class SnippetPermissionController {
     SnippetPermissionService snippetPermissionService;
 
     @GetMapping("hasAccess")
-    public ResponseEntity<Object> hasAccess(@RequestBody SnippetTuple snippetTuple) {
-        Response<Boolean> access = snippetPermissionService.hasAccess(snippetTuple.snippetId(), snippetTuple.userId());
+    public ResponseEntity<Object> hasAccess(@RequestParam String snippetId, @RequestParam String userId) {
+        Response<Boolean> access = snippetPermissionService.hasAccess(snippetId, userId);
         if (!access.getData()) {
             return new ResponseEntity<>("Access Denied", HttpStatus.FORBIDDEN);
         }
@@ -30,18 +28,22 @@ public class SnippetPermissionController {
 
     @PostMapping("/save/relationship")
     public ResponseEntity<Object> saveRelation(@RequestBody SnippetTuple snippetTuple) {
-        Response<String> hasPassed = snippetPermissionService.saveRelation(snippetTuple.snippetId(), snippetTuple.userId(), GrantType.WRITE);
+        Response<String> hasPassed = snippetPermissionService.saveRelation(snippetTuple.snippetId(),
+                snippetTuple.userId(), GrantType.WRITE);
         if (hasPassed.isError()) {
-            return new ResponseEntity<>(hasPassed.getError().message(), HttpStatus.valueOf(hasPassed.getError().code()));
+            return new ResponseEntity<>(hasPassed.getError().message(),
+                    HttpStatus.valueOf(hasPassed.getError().code()));
         }
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/save/share/relationship")
     public ResponseEntity<Object> saveShareRelation(@RequestBody SnippetTuple snippetTuple) {
-        Response<String> hasPassed = snippetPermissionService.saveRelation(snippetTuple.snippetId(), snippetTuple.userId(), GrantType.READ);
+        Response<String> hasPassed = snippetPermissionService.saveRelation(snippetTuple.snippetId(),
+                snippetTuple.userId(), GrantType.READ);
         if (hasPassed.isError()) {
-            return new ResponseEntity<>(hasPassed.getError().message(), HttpStatus.valueOf(hasPassed.getError().code()));
+            return new ResponseEntity<>(hasPassed.getError().message(),
+                    HttpStatus.valueOf(hasPassed.getError().code()));
         }
         return ResponseEntity.ok().build();
     }
