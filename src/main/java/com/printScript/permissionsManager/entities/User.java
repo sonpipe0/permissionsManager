@@ -1,6 +1,5 @@
 package com.printScript.permissionsManager.entities;
 
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +22,5 @@ public class User {
     private String email;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<SnippetPermission> snippetPermissions;
-
+    private List<UserGrantType> userGrantTypes;
 }

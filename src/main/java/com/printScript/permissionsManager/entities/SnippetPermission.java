@@ -1,11 +1,12 @@
 package com.printScript.permissionsManager.entities;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Entity
 @Table(name = "snippet_permissions")
@@ -17,7 +18,6 @@ public class SnippetPermission {
     @Id
     private String snippetId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @OneToMany(mappedBy = "snippetPermission", cascade = CascadeType.ALL)
+    private List<UserGrantType> userGrantTypes;
 }
