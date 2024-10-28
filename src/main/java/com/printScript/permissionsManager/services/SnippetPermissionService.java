@@ -1,6 +1,8 @@
 package com.printScript.permissionsManager.services;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,4 +80,26 @@ public class SnippetPermissionService {
             return Response.withError(new Error(500, e.getMessage()));
         }
     }
+
+    public Response<Map<String, String>> getSnippetGrants(String userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            return Response.withError(new Error(404, "User not registered"));
+        }
+
+        List<SnippetPermission> snippetPermissions = snippetPermissionRepository.findAll();
+        Map<String, String> snippetGrants = new HashMap<>();
+
+        for (SnippetPermission snippetPermission : snippetPermissions) {
+            for (UserGrantType userGrantType : snippetPermission.getUserGrantTypes()) {
+                if (userGrantType.getUser().equals(user.get())) {
+                    snippetGrants.put(snippetPermission.getSnippetId(), userGrantType.getGrantType().toString());
+                }
+            }
+        }
+
+        return Response.withData(snippetGrants);
+    }
+
+
 }

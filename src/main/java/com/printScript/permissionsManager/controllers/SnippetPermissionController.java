@@ -10,6 +10,8 @@ import com.printScript.permissionsManager.DTO.SnippetTuple;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.services.SnippetPermissionService;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/snippets")
 public class SnippetPermissionController {
@@ -55,5 +57,14 @@ public class SnippetPermissionController {
                     HttpStatus.valueOf(hasPassed.getError().code()));
         }
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/get/relationships")
+    public ResponseEntity<Object> getRelations(@RequestParam String userId) {
+        Response<Map<String, String>> snippetGrants = snippetPermissionService.getSnippetGrants(userId);
+        if (snippetGrants.isError()) {
+            return new ResponseEntity<>(snippetGrants.getError().message(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return ResponseEntity.ok(snippetGrants.getData());
     }
 }
