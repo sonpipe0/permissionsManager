@@ -14,12 +14,11 @@ import lombok.Setter;
 @NoArgsConstructor
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", unique = true)
     private String userId;
 
-    @Column(name = "email", unique = true)
-    private String email;
+    @Column(name = "username", unique = true)
+    private String username;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserGrantType> userGrantTypes;
