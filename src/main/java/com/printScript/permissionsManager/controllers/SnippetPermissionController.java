@@ -25,8 +25,9 @@ public class SnippetPermissionController {
     UserService userService;
 
     @GetMapping("has-access")
-    public ResponseEntity<Object> hasAccess(@RequestBody String snippetId, @RequestHeader Map<String, String> headers) {
-        String token = headers.get("Authorization").substring(7);
+    public ResponseEntity<Object> hasAccess(@RequestParam String snippetId,
+            @RequestHeader Map<String, String> headers) {
+        String token = headers.get("authorization").substring(7);
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
         Response<Boolean> access = snippetPermissionService.hasAccess(snippetId, userId);
