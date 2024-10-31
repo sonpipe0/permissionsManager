@@ -25,37 +25,17 @@ public class SnippetPermissionService {
     SnippetPermissionRepository snippetPermissionRepository;
 
     public Response<Boolean> hasAccess(String snippetId, String userId) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty())
-            return Response.withError(new Error(404, "User not registered"));
+        User user = userRepository.findById(userId).orElse(null);
         Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
         if (snippetPermission.isEmpty())
             return Response.withError(new Error(404, "Snippet not found"));
-
         boolean hasAccess = snippetPermission.get().getUserGrantTypes().stream()
-                .anyMatch(userGrantType -> userGrantType.getUser().equals(user.get()));
+                .anyMatch(userGrantType -> userGrantType.getUser().equals(user));
         return Response.withData(hasAccess);
     }
 
-    public Response<Boolean> canEdit(String snippetId, String userId) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty())
-            return Response.withError(new Error(404, "User not registered"));
-        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
-        if (snippetPermission.isEmpty())
-            return Response.withError(new Error(404, "Snippet not found"));
-
-        boolean canEdit = snippetPermission.get().getUserGrantTypes().stream()
-                .anyMatch(userGrantType -> userGrantType.getUser().equals(user.get())
-                        && userGrantType.getGrantType().equals(GrantType.WRITE));
-        return Response.withData(canEdit);
-    }
-
     public Response<String> saveRelation(String snippetId, String userId, GrantType grantType) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty())
-            return Response.withError(new Error(404, "User not registered"));
-
+        User user = userRepository.findById(userId).orElse(null);
         try {
             // Crear una nueva instancia de SnippetPermission
             SnippetPermission snippetPermission = new SnippetPermission();
@@ -63,7 +43,7 @@ public class SnippetPermissionService {
 
             // Crear una nueva instancia de UserGrantType
             UserGrantType userGrantType = new UserGrantType();
-            userGrantType.setUser(user.get());
+            userGrantType.setUser(user);
             userGrantType.setSnippetPermission(snippetPermission);
             userGrantType.setGrantType(grantType);
 
@@ -77,5 +57,16 @@ public class SnippetPermissionService {
         } catch (Exception e) {
             return Response.withError(new Error(500, e.getMessage()));
         }
+    }
+
+    public Response<Boolean> canEdit(String snippetId, String userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
+        if (snippetPermission.isEmpty())
+            return Response.withError(new Error(404, "Snippet not found"));
+        boolean canEdit = snippetPermission.get().getUserGrantTypes().stream()
+                .anyMatch(userGrantType -> userGrantType.getUser().equals(user)
+                        && userGrantType.getGrantType().equals(GrantType.WRITE));
+        return Response.withData(canEdit);
     }
 }
