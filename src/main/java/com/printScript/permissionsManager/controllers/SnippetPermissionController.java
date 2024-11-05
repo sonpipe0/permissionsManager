@@ -11,7 +11,6 @@ import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.DTO.ShareSnippetDTO;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.services.SnippetPermissionService;
-import com.printScript.permissionsManager.services.UserService;
 import com.printScript.permissionsManager.utils.TokenUtils;
 
 @RestController
@@ -20,9 +19,6 @@ public class SnippetPermissionController {
 
     @Autowired
     SnippetPermissionService snippetPermissionService;
-
-    @Autowired
-    UserService userService;
 
     @GetMapping("has-access")
     public ResponseEntity<Object> hasAccess(@RequestParam String snippetId,
@@ -69,12 +65,7 @@ public class SnippetPermissionController {
         String token = headers.get("Authorization").substring(7);
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
-        if (!snippetPermissionService.canEdit(shareSnippetDTO.getSnippetId(), userId).getData()) {
-            return new ResponseEntity<>("Access Denied", HttpStatus.FORBIDDEN);
-        }
-        String shareId = userService.getUserId(shareSnippetDTO.getUsername());
-        Response<String> hasPassed = snippetPermissionService.saveRelation(shareSnippetDTO.getSnippetId(), shareId,
-                GrantType.READ);
+        Response<String> hasPassed = snippetPermissionService.saveShareRelation(shareSnippetDTO, userId);
         if (hasPassed.isError()) {
             return new ResponseEntity<>(hasPassed.getError().message(),
                     HttpStatus.valueOf(hasPassed.getError().code()));
