@@ -1,4 +1,13 @@
 package com.printScript.permissionsManager.DTO;
 
-public record ShareSnippetDTO(String snippetId, String username) {
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class ShareSnippetDTO {
+
+    private String snippetId;
+
+    private String username;
 }
