@@ -1,10 +1,10 @@
 package com.printScript.permissionsManager.services;
 
-import com.printScript.permissionsManager.DTO.Error;
-import com.printScript.permissionsManager.DTO.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.printScript.permissionsManager.DTO.Error;
+import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.repositories.UserRepository;
 
 @Service
