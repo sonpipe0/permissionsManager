@@ -2,6 +2,7 @@ package com.printScript.permissionsManager.services;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,16 +14,22 @@ import com.printScript.permissionsManager.entities.SnippetPermission;
 import com.printScript.permissionsManager.entities.User;
 import com.printScript.permissionsManager.entities.UserGrantType;
 import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
+import com.printScript.permissionsManager.repositories.UserGrantTypeRepository;
 import com.printScript.permissionsManager.repositories.UserRepository;
 
 @Service
 public class SnippetPermissionService {
+
+    private static final Logger logger = Logger.getLogger(SnippetPermissionService.class.getName());
 
     @Autowired
     UserRepository userRepository;
 
     @Autowired
     SnippetPermissionRepository snippetPermissionRepository;
+
+    @Autowired
+    UserGrantTypeRepository userGrantTypeRepository;
 
     public Response<Boolean> hasAccess(String snippetId, String userId) {
         User user = userRepository.findById(userId).orElse(null);
@@ -68,5 +75,15 @@ public class SnippetPermissionService {
                 .anyMatch(userGrantType -> userGrantType.getUser().equals(user)
                         && userGrantType.getGrantType().equals(GrantType.WRITE));
         return Response.withData(canEdit);
+    }
+
+    public Response<List<String>> getAllSnippetsByUser(String userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            return Response.withError(new Error(404, "User not found"));
+        }
+        List<UserGrantType> snippetIds = userGrantTypeRepository.findAllByUserAndGrantType(user.get(), GrantType.WRITE);
+        return Response.withData(snippetIds.stream().map(UserGrantType::getSnippetPermission)
+                .map(SnippetPermission::getSnippetId).toList());
     }
 }

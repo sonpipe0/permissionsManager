@@ -1,5 +1,6 @@
 package com.printScript.permissionsManager.controllers;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,5 +81,17 @@ public class SnippetPermissionController {
                     HttpStatus.valueOf(hasPassed.getError().code()));
         }
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/get/all/edit")
+    public ResponseEntity<Object> getAllSnippetsByUser(@RequestHeader Map<String, String> headers) {
+        String token = headers.get("authorization").substring(7);
+        Map<String, String> userInfo = TokenUtils.decodeToken(token);
+        String userId = userInfo.get("userId");
+        Response<List<String>> response = snippetPermissionService.getAllSnippetsByUser(userId);
+        if (response.isError()) {
+            return new ResponseEntity<>(response.getError().message(), HttpStatus.valueOf(response.getError().code()));
+        }
+        return ResponseEntity.ok(response.getData());
     }
 }
