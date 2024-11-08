@@ -1,9 +1,13 @@
 package com.printScript.permissionsManager.services;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +24,7 @@ import com.printScript.permissionsManager.repositories.UserRepository;
 
 @Service
 public class SnippetPermissionService {
+    private static final Logger logger = LoggerFactory.getLogger(SnippetPermissionService.class);
 
     private static final Logger logger = Logger.getLogger(SnippetPermissionService.class.getName());
 
@@ -81,6 +86,29 @@ public class SnippetPermissionService {
         return Response.withData(canEdit);
     }
 
+    public Response<Map<String, String>> getSnippetGrants(String userId) {
+        logger.info("Fetching snippet grants for userId: {}", userId);
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            logger.error("User not registered: {}", userId);
+            return Response.withError(new com.printScript.permissionsManager.DTO.Error(404, "User not registered"));
+        }
+
+        List<SnippetPermission> snippetPermissions = snippetPermissionRepository.findAll();
+        Map<String, String> snippetGrants = new HashMap<>();
+
+        for (SnippetPermission snippetPermission : snippetPermissions) {
+            for (UserGrantType userGrantType : snippetPermission.getUserGrantTypes()) {
+                if (userGrantType.getUser().equals(user.get())) {
+                    snippetGrants.put(snippetPermission.getSnippetId(), userGrantType.getGrantType().toString());
+                }
+            }
+        }
+
+        logger.info("Snippet grants for userId {}: {}", userId, snippetGrants);
+        return Response.withData(snippetGrants);
+  }
+  
     public Response<List<String>> getAllSnippetsByUser(String userId) {
         User user = userRepository.findById(userId).orElse(null);
         List<UserGrantType> snippetIds = userGrantTypeRepository.findAllByUserAndGrantType(user, GrantType.WRITE);

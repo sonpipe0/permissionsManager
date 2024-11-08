@@ -22,7 +22,7 @@ public class UserCreationInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
-        String token = request.getHeader("Authorization").substring(7);
+        String token = request.getHeader("authorization").substring(7);
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
         String username = userInfo.get("username");

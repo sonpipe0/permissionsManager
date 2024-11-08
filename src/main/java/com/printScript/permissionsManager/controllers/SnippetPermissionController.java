@@ -3,6 +3,8 @@ package com.printScript.permissionsManager.controllers;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,7 @@ import com.printScript.permissionsManager.utils.TokenUtils;
 @RestController
 @RequestMapping("/snippets")
 public class SnippetPermissionController {
+    private static final Logger logger = LoggerFactory.getLogger(SnippetPermissionController.class);
 
     @Autowired
     SnippetPermissionService snippetPermissionService;
@@ -74,6 +77,21 @@ public class SnippetPermissionController {
         return ResponseEntity.ok().build();
     }
 
+  
+    @GetMapping("/get/relationships")
+    public ResponseEntity<Object> getRelations(@RequestHeader Map<String, String> headers) {
+        String token = headers.get("authorization").substring(7);
+        Map<String, String> userInfo = TokenUtils.decodeToken(token);
+        String userId = userInfo.get("userId");
+        logger.info("Fetching snippet grants for userId: {}", userId);
+        Response<Map<String, String>> snippetGrants = snippetPermissionService.getSnippetGrants(userId);
+        if (snippetGrants.isError()) {
+            logger.error("Error fetching snippet grants: {}", snippetGrants.getError().message());
+            return new ResponseEntity<>(snippetGrants.getError().message(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        logger.info("Snippet grants found: {}", snippetGrants.getData());
+        return ResponseEntity.ok(snippetGrants.getData());
+  }
     @GetMapping("/get/all/edit")
     public ResponseEntity<Object> getAllSnippetsByUser(@RequestHeader Map<String, String> headers) {
         String token = headers.get("authorization").substring(7);
