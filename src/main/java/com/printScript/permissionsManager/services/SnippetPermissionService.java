@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,7 @@ import com.printScript.permissionsManager.repositories.UserRepository;
 
 @Service
 public class SnippetPermissionService {
+    private static final Logger logger = LoggerFactory.getLogger(SnippetPermissionService.class);
 
     @Autowired
     UserRepository userRepository;
@@ -73,9 +76,11 @@ public class SnippetPermissionService {
     }
 
     public Response<Map<String, String>> getSnippetGrants(String userId) {
+        logger.info("Fetching snippet grants for userId: {}", userId);
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
-            return Response.withError(new Error(404, "User not registered"));
+            logger.error("User not registered: {}", userId);
+            return Response.withError(new com.printScript.permissionsManager.DTO.Error(404, "User not registered"));
         }
 
         List<SnippetPermission> snippetPermissions = snippetPermissionRepository.findAll();
@@ -89,8 +94,7 @@ public class SnippetPermissionService {
             }
         }
 
+        logger.info("Snippet grants for userId {}: {}", userId, snippetGrants);
         return Response.withData(snippetGrants);
     }
-
-
 }
