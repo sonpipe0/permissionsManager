@@ -4,9 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Logger;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,9 +22,7 @@ import com.printScript.permissionsManager.repositories.UserRepository;
 
 @Service
 public class SnippetPermissionService {
-    private static final Logger logger = LoggerFactory.getLogger(SnippetPermissionService.class);
-
-    private static final Logger logger = Logger.getLogger(SnippetPermissionService.class.getName());
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SnippetPermissionService.class);
 
     @Autowired
     UserRepository userRepository;
@@ -107,8 +103,8 @@ public class SnippetPermissionService {
 
         logger.info("Snippet grants for userId {}: {}", userId, snippetGrants);
         return Response.withData(snippetGrants);
-  }
-  
+    }
+
     public Response<List<String>> getAllSnippetsByUser(String userId) {
         User user = userRepository.findById(userId).orElse(null);
         List<UserGrantType> snippetIds = userGrantTypeRepository.findAllByUserAndGrantType(user, GrantType.WRITE);

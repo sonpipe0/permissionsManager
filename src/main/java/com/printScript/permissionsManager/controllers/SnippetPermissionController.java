@@ -77,7 +77,6 @@ public class SnippetPermissionController {
         return ResponseEntity.ok().build();
     }
 
-  
     @GetMapping("/get/relationships")
     public ResponseEntity<Object> getRelations(@RequestHeader Map<String, String> headers) {
         String token = headers.get("authorization").substring(7);
@@ -91,7 +90,8 @@ public class SnippetPermissionController {
         }
         logger.info("Snippet grants found: {}", snippetGrants.getData());
         return ResponseEntity.ok(snippetGrants.getData());
-  }
+    }
+
     @GetMapping("/get/all/edit")
     public ResponseEntity<Object> getAllSnippetsByUser(@RequestHeader Map<String, String> headers) {
         String token = headers.get("authorization").substring(7);
