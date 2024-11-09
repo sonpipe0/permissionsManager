@@ -1,8 +1,6 @@
 package com.printScript.permissionsManager.services;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.LoggerFactory;
@@ -82,27 +80,21 @@ public class SnippetPermissionService {
         return Response.withData(canEdit);
     }
 
-    public Response<Map<String, String>> getSnippetGrants(String userId) {
-        logger.info("Fetching snippet grants for userId: {}", userId);
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            logger.error("User not registered: {}", userId);
-            return Response.withError(new com.printScript.permissionsManager.DTO.Error(404, "User not registered"));
+    public enum FilterType {
+        ALL, READ, WRITE
+    }
+
+    public Response<List<String>> getSnippetGrants(String userId, String filterType) {
+        User user = userRepository.findById(userId).orElse(null);
+        FilterType filter = FilterType.valueOf(filterType);
+        List<UserGrantType> userGrantTypes = userGrantTypeRepository.findAllByUser(user);
+        if (filter != FilterType.ALL) {
+            userGrantTypes = userGrantTypes.stream()
+                    .filter(userGrantType -> userGrantType.getGrantType().equals(GrantType.valueOf(filter.name())))
+                    .toList();
         }
-
-        List<SnippetPermission> snippetPermissions = snippetPermissionRepository.findAll();
-        Map<String, String> snippetGrants = new HashMap<>();
-
-        for (SnippetPermission snippetPermission : snippetPermissions) {
-            for (UserGrantType userGrantType : snippetPermission.getUserGrantTypes()) {
-                if (userGrantType.getUser().equals(user.get())) {
-                    snippetGrants.put(snippetPermission.getSnippetId(), userGrantType.getGrantType().toString());
-                }
-            }
-        }
-
-        logger.info("Snippet grants for userId {}: {}", userId, snippetGrants);
-        return Response.withData(snippetGrants);
+        return Response.withData(userGrantTypes.stream().map(UserGrantType::getSnippetPermission)
+                .map(SnippetPermission::getSnippetId).toList());
     }
 
     public Response<List<String>> getAllSnippetsByUser(String userId) {
