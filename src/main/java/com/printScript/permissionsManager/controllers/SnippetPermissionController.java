@@ -84,12 +84,12 @@ public class SnippetPermissionController {
     }
 
     @GetMapping("/get/relationships")
-    public ResponseEntity<Object> getRelations(@RequestHeader Map<String, String> headers) {
+    public ResponseEntity<Object> getRelations(@RequestParam String filterType,
+            @RequestHeader Map<String, String> headers) {
         String token = headers.get("authorization").substring(7);
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
-        logger.info("Fetching snippet grants for userId: {}", userId);
-        Response<Map<String, String>> snippetGrants = snippetPermissionService.getSnippetGrants(userId);
+        Response<List<String>> snippetGrants = snippetPermissionService.getSnippetGrants(userId, filterType);
         if (snippetGrants.isError()) {
             logger.error("Error fetching snippet grants: {}", snippetGrants.getError().message());
             return new ResponseEntity<>(snippetGrants.getError().message(), HttpStatus.INTERNAL_SERVER_ERROR);
