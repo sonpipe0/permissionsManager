@@ -31,6 +31,9 @@ public class SnippetPermissionController {
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
         Response<Boolean> access = snippetPermissionService.hasAccess(snippetId, userId);
+        if (access.isError()) {
+            return new ResponseEntity<>(access.getError().message(), HttpStatus.valueOf(access.getError().code()));
+        }
         if (!access.getData()) {
             return new ResponseEntity<>("Access Denied", HttpStatus.FORBIDDEN);
         }
@@ -39,10 +42,13 @@ public class SnippetPermissionController {
 
     @GetMapping("can-edit")
     public ResponseEntity<Object> canEdit(@RequestParam String snippetId, @RequestHeader Map<String, String> headers) {
-        String token = headers.get("Authorization").substring(7);
+        String token = headers.get("authorization").substring(7);
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
         Response<Boolean> access = snippetPermissionService.canEdit(snippetId, userId);
+        if (access.isError()) {
+            return new ResponseEntity<>(access.getError().message(), HttpStatus.valueOf(access.getError().code()));
+        }
         if (!access.getData()) {
             return new ResponseEntity<>("Access Denied", HttpStatus.FORBIDDEN);
         }
@@ -66,7 +72,7 @@ public class SnippetPermissionController {
     @PostMapping("/save/share/relationship")
     public ResponseEntity<Object> saveShareRelation(@RequestBody ShareSnippetDTO shareSnippetDTO,
             @RequestHeader Map<String, String> headers) {
-        String token = headers.get("Authorization").substring(7);
+        String token = headers.get("authorization").substring(7);
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
         Response<String> hasPassed = snippetPermissionService.saveShareRelation(shareSnippetDTO, userId);
