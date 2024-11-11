@@ -89,7 +89,9 @@ public class SnippetPermissionController {
         String token = headers.get("authorization").substring(7);
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
-        Response<List<String>> snippetGrants = snippetPermissionService.getSnippetGrants(userId, filterType);
+        Response<List<SnippetPermissionService.SnippetPermissionGrantResponse>> snippetGrants = snippetPermissionService
+                .getSnippetGrants(userId, filterType);
+        System.out.println(snippetGrants);
         if (snippetGrants.isError()) {
             logger.error("Error fetching snippet grants: {}", snippetGrants.getError().message());
             return new ResponseEntity<>(snippetGrants.getError().message(), HttpStatus.INTERNAL_SERVER_ERROR);

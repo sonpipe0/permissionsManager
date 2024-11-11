@@ -84,7 +84,10 @@ public class SnippetPermissionService {
         ALL, READ, WRITE
     }
 
-    public Response<List<String>> getSnippetGrants(String userId, String filterType) {
+    public record SnippetPermissionGrantResponse(String snippetId, String author) {
+    }
+
+    public Response<List<SnippetPermissionGrantResponse>> getSnippetGrants(String userId, String filterType) {
         User user = userRepository.findById(userId).orElse(null);
         FilterType filter = FilterType.valueOf(filterType);
         List<UserGrantType> userGrantTypes = userGrantTypeRepository.findAllByUser(user);
@@ -93,8 +96,13 @@ public class SnippetPermissionService {
                     .filter(userGrantType -> userGrantType.getGrantType().equals(GrantType.valueOf(filter.name())))
                     .toList();
         }
-        return Response.withData(userGrantTypes.stream().map(UserGrantType::getSnippetPermission)
-                .map(SnippetPermission::getSnippetId).toList());
+        return Response
+                .withData(userGrantTypes.stream().map(UserGrantType::getSnippetPermission).map(snippetPermission -> {
+                    String author = snippetPermission.getUserGrantTypes().stream()
+                            .filter(userGrantType -> userGrantType.getGrantType().equals(GrantType.WRITE))
+                            .map(userGrantType -> userGrantType.getUser().getUsername()).findFirst().orElse(null);
+                    return new SnippetPermissionGrantResponse(snippetPermission.getSnippetId(), author);
+                }).toList());
     }
 
     public Response<List<String>> getAllSnippetsByUser(String userId) {
