@@ -91,7 +91,6 @@ public class SnippetPermissionController {
         String userId = userInfo.get("userId");
         Response<List<SnippetPermissionService.SnippetPermissionGrantResponse>> snippetGrants = snippetPermissionService
                 .getSnippetGrants(userId, filterType);
-        System.out.println(snippetGrants);
         if (snippetGrants.isError()) {
             logger.error("Error fetching snippet grants: {}", snippetGrants.getError().message());
             return new ResponseEntity<>(snippetGrants.getError().message(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -106,6 +105,15 @@ public class SnippetPermissionController {
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
         Response<List<String>> response = snippetPermissionService.getAllSnippetsByUser(userId);
+        if (response.isError()) {
+            return new ResponseEntity<>(response.getError().message(), HttpStatus.valueOf(response.getError().code()));
+        }
+        return ResponseEntity.ok(response.getData());
+    }
+
+    @GetMapping("/get/author")
+    public ResponseEntity<Object> getSnippetAuthor(@RequestParam String snippetId) {
+        Response<String> response = snippetPermissionService.getSnippetAuthor(snippetId);
         if (response.isError()) {
             return new ResponseEntity<>(response.getError().message(), HttpStatus.valueOf(response.getError().code()));
         }

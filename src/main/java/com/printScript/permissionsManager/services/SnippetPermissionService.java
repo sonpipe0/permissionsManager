@@ -80,6 +80,16 @@ public class SnippetPermissionService {
         return Response.withData(canEdit);
     }
 
+    public Response<String> getSnippetAuthor(String snippetId) {
+        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
+        if (snippetPermission.isEmpty())
+            return Response.withError(new Error(404, "Snippet not found"));
+        String author = snippetPermission.get().getUserGrantTypes().stream()
+                .filter(userGrantType -> userGrantType.getGrantType().equals(GrantType.WRITE))
+                .map(userGrantType -> userGrantType.getUser().getUsername()).findFirst().orElse(null);
+        return Response.withData(author);
+    }
+
     public enum FilterType {
         ALL, READ, WRITE
     }
