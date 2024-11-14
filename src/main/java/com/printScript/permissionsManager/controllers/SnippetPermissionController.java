@@ -3,6 +3,8 @@ package com.printScript.permissionsManager.controllers;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,7 @@ import com.printScript.permissionsManager.utils.TokenUtils;
 @RestController
 @RequestMapping("/snippets")
 public class SnippetPermissionController {
+    private static final Logger logger = LoggerFactory.getLogger(SnippetPermissionController.class);
 
     @Autowired
     SnippetPermissionService snippetPermissionService;
@@ -28,6 +31,9 @@ public class SnippetPermissionController {
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
         Response<Boolean> access = snippetPermissionService.hasAccess(snippetId, userId);
+        if (access.isError()) {
+            return new ResponseEntity<>(access.getError().message(), HttpStatus.valueOf(access.getError().code()));
+        }
         if (!access.getData()) {
             return new ResponseEntity<>("Access Denied", HttpStatus.FORBIDDEN);
         }
@@ -36,10 +42,13 @@ public class SnippetPermissionController {
 
     @GetMapping("can-edit")
     public ResponseEntity<Object> canEdit(@RequestParam String snippetId, @RequestHeader Map<String, String> headers) {
-        String token = headers.get("Authorization").substring(7);
+        String token = headers.get("authorization").substring(7);
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
         Response<Boolean> access = snippetPermissionService.canEdit(snippetId, userId);
+        if (access.isError()) {
+            return new ResponseEntity<>(access.getError().message(), HttpStatus.valueOf(access.getError().code()));
+        }
         if (!access.getData()) {
             return new ResponseEntity<>("Access Denied", HttpStatus.FORBIDDEN);
         }
@@ -63,7 +72,7 @@ public class SnippetPermissionController {
     @PostMapping("/save/share/relationship")
     public ResponseEntity<Object> saveShareRelation(@RequestBody ShareSnippetDTO shareSnippetDTO,
             @RequestHeader Map<String, String> headers) {
-        String token = headers.get("Authorization").substring(7);
+        String token = headers.get("authorization").substring(7);
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
         Response<String> hasPassed = snippetPermissionService.saveShareRelation(shareSnippetDTO, userId);
@@ -74,12 +83,37 @@ public class SnippetPermissionController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/get/relationships")
+    public ResponseEntity<Object> getRelations(@RequestParam String filterType,
+            @RequestHeader Map<String, String> headers) {
+        String token = headers.get("authorization").substring(7);
+        Map<String, String> userInfo = TokenUtils.decodeToken(token);
+        String userId = userInfo.get("userId");
+        Response<List<SnippetPermissionService.SnippetPermissionGrantResponse>> snippetGrants = snippetPermissionService
+                .getSnippetGrants(userId, filterType);
+        if (snippetGrants.isError()) {
+            logger.error("Error fetching snippet grants: {}", snippetGrants.getError().message());
+            return new ResponseEntity<>(snippetGrants.getError().message(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        logger.info("Snippet grants found: {}", snippetGrants.getData());
+        return ResponseEntity.ok(snippetGrants.getData());
+    }
+
     @GetMapping("/get/all/edit")
     public ResponseEntity<Object> getAllSnippetsByUser(@RequestHeader Map<String, String> headers) {
         String token = headers.get("authorization").substring(7);
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
         Response<List<String>> response = snippetPermissionService.getAllSnippetsByUser(userId);
+        if (response.isError()) {
+            return new ResponseEntity<>(response.getError().message(), HttpStatus.valueOf(response.getError().code()));
+        }
+        return ResponseEntity.ok(response.getData());
+    }
+
+    @GetMapping("/get/author")
+    public ResponseEntity<Object> getSnippetAuthor(@RequestParam String snippetId) {
+        Response<String> response = snippetPermissionService.getSnippetAuthor(snippetId);
         if (response.isError()) {
             return new ResponseEntity<>(response.getError().message(), HttpStatus.valueOf(response.getError().code()));
         }

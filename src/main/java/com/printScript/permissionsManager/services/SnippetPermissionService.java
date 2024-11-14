@@ -2,8 +2,8 @@ package com.printScript.permissionsManager.services;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +20,7 @@ import com.printScript.permissionsManager.repositories.UserRepository;
 
 @Service
 public class SnippetPermissionService {
-
-    private static final Logger logger = Logger.getLogger(SnippetPermissionService.class.getName());
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SnippetPermissionService.class);
 
     @Autowired
     UserRepository userRepository;
@@ -79,6 +78,41 @@ public class SnippetPermissionService {
                 .anyMatch(userGrantType -> userGrantType.getUser().equals(user)
                         && userGrantType.getGrantType().equals(GrantType.WRITE));
         return Response.withData(canEdit);
+    }
+
+    public Response<String> getSnippetAuthor(String snippetId) {
+        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
+        if (snippetPermission.isEmpty())
+            return Response.withError(new Error(404, "Snippet not found"));
+        String author = snippetPermission.get().getUserGrantTypes().stream()
+                .filter(userGrantType -> userGrantType.getGrantType().equals(GrantType.WRITE))
+                .map(userGrantType -> userGrantType.getUser().getUsername()).findFirst().orElse(null);
+        return Response.withData(author);
+    }
+
+    public enum FilterType {
+        ALL, READ, WRITE
+    }
+
+    public record SnippetPermissionGrantResponse(String snippetId, String author) {
+    }
+
+    public Response<List<SnippetPermissionGrantResponse>> getSnippetGrants(String userId, String filterType) {
+        User user = userRepository.findById(userId).orElse(null);
+        FilterType filter = FilterType.valueOf(filterType);
+        List<UserGrantType> userGrantTypes = userGrantTypeRepository.findAllByUser(user);
+        if (filter != FilterType.ALL) {
+            userGrantTypes = userGrantTypes.stream()
+                    .filter(userGrantType -> userGrantType.getGrantType().equals(GrantType.valueOf(filter.name())))
+                    .toList();
+        }
+        return Response
+                .withData(userGrantTypes.stream().map(UserGrantType::getSnippetPermission).map(snippetPermission -> {
+                    String author = snippetPermission.getUserGrantTypes().stream()
+                            .filter(userGrantType -> userGrantType.getGrantType().equals(GrantType.WRITE))
+                            .map(userGrantType -> userGrantType.getUser().getUsername()).findFirst().orElse(null);
+                    return new SnippetPermissionGrantResponse(snippetPermission.getSnippetId(), author);
+                }).toList());
     }
 
     public Response<List<String>> getAllSnippetsByUser(String userId) {
