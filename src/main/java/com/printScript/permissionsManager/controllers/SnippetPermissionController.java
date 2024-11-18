@@ -69,6 +69,34 @@ public class SnippetPermissionController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/delete/relationship")
+    public ResponseEntity<Object> deleteRelation(@RequestBody String snippetId,
+            @RequestHeader Map<String, String> headers) {
+        String token = headers.get("authorization").substring(7);
+        Map<String, String> userInfo = TokenUtils.decodeToken(token);
+        String userId = userInfo.get("userId");
+        Response<String> hasPassed = snippetPermissionService.deleteRelation(snippetId, userId);
+        if (hasPassed.isError()) {
+            return new ResponseEntity<>(hasPassed.getError().message(),
+                    HttpStatus.valueOf(hasPassed.getError().code()));
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/delete/all-relationships")
+    public ResponseEntity<Object> deleteAllRelations(@RequestBody String snippetId,
+            @RequestHeader Map<String, String> headers) {
+        String token = headers.get("authorization").substring(7);
+        Map<String, String> userInfo = TokenUtils.decodeToken(token);
+        String userId = userInfo.get("userId");
+        Response<String> hasPassed = snippetPermissionService.deleteAllRelations(snippetId);
+        if (hasPassed.isError()) {
+            return new ResponseEntity<>(hasPassed.getError().message(),
+                    HttpStatus.valueOf(hasPassed.getError().code()));
+        }
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/save/share/relationship")
     public ResponseEntity<Object> saveShareRelation(@RequestBody ShareSnippetDTO shareSnippetDTO,
             @RequestHeader Map<String, String> headers) {

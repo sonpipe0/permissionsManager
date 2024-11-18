@@ -1,7 +1,9 @@
 package com.printScript.permissionsManager.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
+import com.printScript.permissionsManager.entities.SnippetPermission;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.printScript.permissionsManager.entities.GrantType;
@@ -12,4 +14,6 @@ public interface UserGrantTypeRepository extends JpaRepository<UserGrantType, Lo
     List<UserGrantType> findAllByUserAndGrantType(User user, GrantType grantType);
 
     List<UserGrantType> findAllByUser(User user);
+
+    UserGrantType findByUserAndSnippetPermission(User user, SnippetPermission snippetPermission);
 }
