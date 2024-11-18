@@ -46,11 +46,29 @@ public class SnippetPermissionService {
 
     public Response<String> saveRelation(String snippetId, String userId, GrantType grantType) {
         User user = userRepository.findById(userId).orElse(null);
-        try {
-            // Crear una nueva instancia de SnippetPermission
-            SnippetPermission snippetPermission = new SnippetPermission();
-            snippetPermission.setSnippetId(snippetId);
+        Optional<SnippetPermission> snippetPermissionOpt = snippetPermissionRepository.findById(snippetId);
+        if (snippetPermissionOpt.isEmpty()) {
+            try {
+                // Crear una nueva instancia de SnippetPermission
+                SnippetPermission snippetPermission = new SnippetPermission();
+                snippetPermission.setSnippetId(snippetId);
+                snippetPermissionRepository.save(snippetPermission);
+                return createRelation(snippetPermission, user, grantType);
+            } catch (Exception e) {
+                return Response.withError(new Error(500, e.getMessage()));
+            }
+        }
+        else {
+            SnippetPermission snippetPermission = snippetPermissionOpt.get();
+            if (userGrantTypeRepository.findByUserAndSnippetPermission(user, snippetPermission) != null) {
+                return Response.withError(new Error(409, "Relationship already exists"));
+            }
+            return createRelation(snippetPermission, user, grantType);
+        }
+    }
 
+    private Response<String> createRelation(SnippetPermission snippetPermission, User user, GrantType grantType) {
+        try {
             // Crear una nueva instancia de UserGrantType
             UserGrantType userGrantType = new UserGrantType();
             userGrantType.setUser(user);
@@ -58,7 +76,13 @@ public class SnippetPermissionService {
             userGrantType.setGrantType(grantType);
 
             // Establecer la relación en SnippetPermission
-            snippetPermission.setUserGrantTypes(List.of(userGrantType));
+            List<UserGrantType> userGrantTypes = snippetPermission.getUserGrantTypes();
+            if (userGrantTypes != null) {
+                userGrantTypes.add(userGrantType);
+            } else {
+                userGrantTypes = List.of(userGrantType);
+            }
+            snippetPermission.setUserGrantTypes(userGrantTypes);
 
             // Guardar la nueva relación
             snippetPermissionRepository.save(snippetPermission);
@@ -120,6 +144,43 @@ public class SnippetPermissionService {
         List<UserGrantType> snippetIds = userGrantTypeRepository.findAllByUserAndGrantType(user, GrantType.WRITE);
         return Response.withData(snippetIds.stream().map(UserGrantType::getSnippetPermission)
                 .map(SnippetPermission::getSnippetId).toList());
+    }
+
+    public Response<String> deleteRelation(String snippetId, String userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        Optional<SnippetPermission> snippetPermissionOpt = snippetPermissionRepository.findById(snippetId);
+        if (snippetPermissionOpt.isEmpty())
+            return Response.withError(new Error(404, "Snippet not found"));
+
+        SnippetPermission snippetPermission = snippetPermissionOpt.get();
+        Optional<UserGrantType> userGrantType = snippetPermission.getUserGrantTypes().stream()
+                .filter(ugt -> ugt.getUser().equals(user)).findFirst();
+        if (userGrantType.isEmpty())
+            return Response.withError(new Error(404, "UserGrantTypes not found"));
+        try {
+            List<UserGrantType> userGrantTypes = snippetPermission.getUserGrantTypes();
+            userGrantTypes.remove(userGrantType.get());
+            snippetPermission.setUserGrantTypes(userGrantTypes);
+            snippetPermissionRepository.save(snippetPermission);
+            userGrantTypeRepository.delete(userGrantType.get());
+            return Response.withData("Relationship deleted");
+        } catch (Exception e) {
+            return Response.withError(new Error(500, e.getMessage()));
+        }
+    }
+
+    public Response<String> deleteAllRelations(String snippetId) {
+        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
+        if (snippetPermission.isEmpty())
+            return Response.withError(new Error(404, "Snippet not found"));
+        List<UserGrantType> userGrantTypes = snippetPermission.get().getUserGrantTypes();
+        try {
+            userGrantTypeRepository.deleteAll(userGrantTypes);
+            snippetPermissionRepository.delete(snippetPermission.get());
+            return Response.withData("All relationships deleted");
+        } catch (Exception e) {
+            return Response.withError(new Error(500, e.getMessage()));
+        }
     }
 
     public Response<String> saveShareRelation(ShareSnippetDTO shareSnippetDTO, String userId) {
