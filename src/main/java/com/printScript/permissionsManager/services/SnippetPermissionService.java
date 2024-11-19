@@ -57,8 +57,7 @@ public class SnippetPermissionService {
             } catch (Exception e) {
                 return Response.withError(new Error(500, e.getMessage()));
             }
-        }
-        else {
+        } else {
             SnippetPermission snippetPermission = snippetPermissionOpt.get();
             if (userGrantTypeRepository.findByUserAndSnippetPermission(user, snippetPermission) != null) {
                 return Response.withError(new Error(409, "Relationship already exists"));

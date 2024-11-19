@@ -1,12 +1,11 @@
 package com.printScript.permissionsManager.repositories;
 
 import java.util.List;
-import java.util.Optional;
 
-import com.printScript.permissionsManager.entities.SnippetPermission;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.printScript.permissionsManager.entities.GrantType;
+import com.printScript.permissionsManager.entities.SnippetPermission;
 import com.printScript.permissionsManager.entities.User;
 import com.printScript.permissionsManager.entities.UserGrantType;
 

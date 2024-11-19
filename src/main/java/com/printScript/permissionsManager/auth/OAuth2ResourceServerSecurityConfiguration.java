@@ -25,7 +25,7 @@ public class OAuth2ResourceServerSecurityConfiguration {
     private final String issuer;
 
     public OAuth2ResourceServerSecurityConfiguration(@Value("${auth0.audience}") String audience,
-                                                     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuer) {
+            @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuer) {
         this.audience = audience;
         this.issuer = issuer;
     }
@@ -36,7 +36,7 @@ public class OAuth2ResourceServerSecurityConfiguration {
                 .requestMatchers(HttpMethod.GET, "/snippets").hasAuthority("SCOPE_read:snippets")
                 .requestMatchers(HttpMethod.GET, "/snippets/*").hasAuthority("SCOPE_read:snippets")
                 .requestMatchers(HttpMethod.POST, "/snippets").hasAuthority("SCOPE_write:snippets")
-                .requestMatchers(HttpMethod.DELETE , "/snippets/*").hasAuthority("SCOPE_write:snippets")
+                .requestMatchers(HttpMethod.DELETE, "/snippets/*").hasAuthority("SCOPE_write:snippets")
                 .requestMatchers(HttpMethod.GET, "/swagger-ui").permitAll()
                 .requestMatchers(HttpMethod.GET, "/swagger-ui/*").permitAll()
                 .requestMatchers(HttpMethod.GET, "/v3/api-docs").permitAll()
