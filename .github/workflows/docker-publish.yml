@@ -78,7 +78,9 @@ jobs:
         run: |
           ssh -v -o StrictHostKeyChecking=no sonpipe@${{ secrets.VM_DEV_IP }} << 'ENDSSH'
           cd micro-infra
-          bash update-dev.sh
+          docker compose down permissions-service
+          docker compose pull permissions-service
+          docker compose up -d permissions-service
           ENDSSH
 
       - name: Run Script on Azure VM Stable
@@ -86,5 +88,7 @@ jobs:
         run: |
           ssh -v -o StrictHostKeyChecking=no sonpipe@${{ secrets.VM_STABLE_IP }} << 'ENDSSH'
           cd micro-infra
-          bash update-dev.sh
+          docker compose down permissions-service
+          docker compose pull permissions-service
+          docker compose up -d permissions-service
           ENDSSH
