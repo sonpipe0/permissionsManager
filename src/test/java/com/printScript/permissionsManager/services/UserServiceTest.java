@@ -1,20 +1,11 @@
-package com.printScript.permissionsManager;
+package com.printScript.permissionsManager.services;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import java.util.List;
-import java.util.regex.Pattern;
-
+import com.printScript.permissionsManager.DTO.Error;
 import com.printScript.permissionsManager.DTO.Response;
-import com.printScript.permissionsManager.entities.GrantType;
-import com.printScript.permissionsManager.entities.SnippetPermission;
+import com.printScript.permissionsManager.DTO.UserDTO;
+import com.printScript.permissionsManager.TestSecurityConfig;
 import com.printScript.permissionsManager.entities.User;
-import com.printScript.permissionsManager.entities.UserGrantType;
-import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
-import com.printScript.permissionsManager.repositories.UserGrantTypeRepository;
 import com.printScript.permissionsManager.repositories.UserRepository;
-import com.printScript.permissionsManager.services.SnippetPermissionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,25 +22,23 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 @ActiveProfiles("test")
 @MockitoSettings(strictness = Strictness.LENIENT)
 @Import(TestSecurityConfig.class)
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest
-public class SnippetPermissionServiceTest {
+public class UserServiceTest {
     @Autowired
-    private SnippetPermissionRepository snippetPermissionRepository;
+    private UserService userService;
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private UserGrantTypeRepository userGrantTypeRepository;
-
-    @Autowired
-    private SnippetPermissionService snippetPermissionService;
-
-    private final Pattern uuid = Pattern.compile("([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})");
 
     private String mockToken;
 
@@ -77,6 +66,11 @@ public class SnippetPermissionServiceTest {
         when(authentication.getPrincipal()).thenReturn(jwt);
 
         SecurityContextHolder.setContext(securityContext);
+
+        User user = new User();
+        user.setUserId("userId");
+        user.setUsername("username");
+        userRepository.save(user);
     }
 
     private String base64Encode(String value) {
@@ -84,26 +78,22 @@ public class SnippetPermissionServiceTest {
     }
 
     @Test
-    void testHasAccess() {
-        User user = new User();
-        user.setUserId("userId");
-        user.setUsername("username");
-        userRepository.save(user);
+    void testGetUserId() {
+        Response<String> response = userService.getUserId("username");
 
-        SnippetPermission snippetPermission = new SnippetPermission();
-        snippetPermission.setSnippetId("snippetId");
-        snippetPermissionRepository.save(snippetPermission);
+        assertEquals("userId", response.getData());
 
-        UserGrantType userGrantType = new UserGrantType();
-        userGrantType.setGrantType(GrantType.WRITE);
-        userGrantType.setUser(user);
-        userGrantType.setSnippetPermission(snippetPermission);
+        Response<String> response1 = userService.getUserId("nonExistentUsername");
 
-        snippetPermission.setUserGrantTypes(List.of(userGrantType));
-        snippetPermissionRepository.save(snippetPermission);
+        assertEquals(new Error(404, "User not found"), response1.getError());
+    }
 
-        Response<Boolean> response = snippetPermissionService.hasAccess("snippetId", "userId");
+    @Test
+    void testGetUsersPaginated() {
+        Response<List<UserDTO>> response = userService.getUsersPaginated(10, 0, "user");
 
-        assertTrue(response.getData());
+        assertEquals(1, response.getData().size());
+        assertEquals("userId", response.getData().get(0).getId());
+        assertEquals("username", response.getData().get(0).getName());
     }
 }

@@ -18,7 +18,7 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-@Profile("!Test")
+@Profile("!test")
 @Configuration
 @EnableWebSecurity
 public class OAuth2ResourceServerSecurityConfiguration {
