@@ -37,6 +37,7 @@ public class OAuth2ResourceServerSecurityConfiguration {
                 .requestMatchers(HttpMethod.GET, "/snippets/*").hasAuthority("SCOPE_read:snippets")
                 .requestMatchers(HttpMethod.POST, "/snippets").hasAuthority("SCOPE_write:snippets")
                 .requestMatchers(HttpMethod.DELETE, "/snippets/*").hasAuthority("SCOPE_write:snippets")
+                .requestMatchers(HttpMethod.GET, "/user/*").hasAuthority("SCOPE_read:users")
                 .requestMatchers(HttpMethod.GET, "/swagger-ui").permitAll()
                 .requestMatchers(HttpMethod.GET, "/swagger-ui/*").permitAll()
                 .requestMatchers(HttpMethod.GET, "/v3/api-docs").permitAll()
