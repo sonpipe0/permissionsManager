@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.DTO.ShareSnippetDTO;
+import com.printScript.permissionsManager.DTO.SnippetPermissionGrantResponse;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.services.SnippetPermissionService;
 import com.printScript.permissionsManager.utils.TokenUtils;
@@ -117,8 +118,8 @@ public class SnippetPermissionController {
         String token = headers.get("authorization").substring(7);
         Map<String, String> userInfo = TokenUtils.decodeToken(token);
         String userId = userInfo.get("userId");
-        Response<List<SnippetPermissionService.SnippetPermissionGrantResponse>> snippetGrants = snippetPermissionService
-                .getSnippetGrants(userId, filterType);
+        Response<List<SnippetPermissionGrantResponse>> snippetGrants = snippetPermissionService.getSnippetGrants(userId,
+                filterType);
         if (snippetGrants.isError()) {
             logger.error("Error fetching snippet grants: {}", snippetGrants.getError().message());
             return new ResponseEntity<>(snippetGrants.getError().message(), HttpStatus.INTERNAL_SERVER_ERROR);

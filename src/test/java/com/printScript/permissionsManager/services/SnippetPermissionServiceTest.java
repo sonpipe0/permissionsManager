@@ -25,6 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.DTO.ShareSnippetDTO;
+import com.printScript.permissionsManager.DTO.SnippetPermissionGrantResponse;
 import com.printScript.permissionsManager.TestSecurityConfig;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.entities.SnippetPermission;
@@ -133,6 +134,10 @@ public class SnippetPermissionServiceTest {
 
         assertEquals("Relationship saved", response.getData());
         assertEquals("snippetId1", snippetPermissionRepository.findById("snippetId1").get().getSnippetId());
+
+        Response<String> response2 = snippetPermissionService.saveRelation("snippetId1", "userId", GrantType.WRITE);
+
+        assertEquals(409, response2.getError().code());
     }
 
     @Test
@@ -154,17 +159,17 @@ public class SnippetPermissionServiceTest {
     @Test
     @Transactional
     void testGetSnippetGrants() {
-        SnippetPermissionService.SnippetPermissionGrantResponse snippetPermissionGrantResponse = new SnippetPermissionService.SnippetPermissionGrantResponse(
-                "snippetId", "username");
+        SnippetPermissionGrantResponse snippetPermissionGrantResponse = new SnippetPermissionGrantResponse("snippetId",
+                "username");
 
-        Response<List<SnippetPermissionService.SnippetPermissionGrantResponse>> response = snippetPermissionService
-                .getSnippetGrants("userId", "ALL");
+        Response<List<SnippetPermissionGrantResponse>> response = snippetPermissionService.getSnippetGrants("userId",
+                "ALL");
 
         assertEquals(1, response.getData().size());
         assertEquals(snippetPermissionGrantResponse, response.getData().getFirst());
 
-        Response<List<SnippetPermissionService.SnippetPermissionGrantResponse>> response1 = snippetPermissionService
-                .getSnippetGrants("userId", "WRITE");
+        Response<List<SnippetPermissionGrantResponse>> response1 = snippetPermissionService.getSnippetGrants("userId",
+                "WRITE");
 
         assertEquals(1, response1.getData().size());
         assertEquals(snippetPermissionGrantResponse, response1.getData().getFirst());

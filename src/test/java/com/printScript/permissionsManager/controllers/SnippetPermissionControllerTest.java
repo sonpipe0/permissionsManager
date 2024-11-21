@@ -25,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.printScript.permissionsManager.DTO.Error;
 import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.DTO.ShareSnippetDTO;
 import com.printScript.permissionsManager.TestSecurityConfig;
@@ -122,6 +123,22 @@ public class SnippetPermissionControllerTest {
         snippetPermissionController.saveRelation("snippetId", Map.of("authorization", mockToken));
 
     assertEquals(200, response.getStatusCode().value());
+
+    when(snippetPermissionService.saveRelation(anyString(), anyString(), eq(GrantType.WRITE)))
+        .thenReturn(Response.withError(new Error(409, "Relationship already exists")));
+
+    ResponseEntity<Object> response2 =
+        snippetPermissionController.saveRelation("snippetId", Map.of("authorization", mockToken));
+
+    assertEquals(409, response2.getStatusCode().value());
+
+    when(snippetPermissionService.saveRelation(anyString(), anyString(), eq(GrantType.WRITE)))
+        .thenReturn(Response.withError(new Error(500, "Error message")));
+
+    ResponseEntity<Object> response3 =
+        snippetPermissionController.saveRelation("snippetId", Map.of("authorization", mockToken));
+
+    assertEquals(500, response3.getStatusCode().value());
   }
 
   @Test
@@ -133,6 +150,14 @@ public class SnippetPermissionControllerTest {
         snippetPermissionController.deleteRelation("snippetId", Map.of("authorization", mockToken));
 
     assertEquals(200, response.getStatusCode().value());
+
+    when(snippetPermissionService.deleteRelation(anyString(), anyString()))
+        .thenReturn(Response.withError(new Error(500, "Error message")));
+
+    ResponseEntity<Object> response2 =
+        snippetPermissionController.deleteRelation("snippetId", Map.of("authorization", mockToken));
+
+    assertEquals(500, response2.getStatusCode().value());
   }
 
   @Test
