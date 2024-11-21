@@ -1,9 +1,13 @@
 package com.printScript.permissionsManager.controllers;
 
-import com.printScript.permissionsManager.DTO.Response;
-import com.printScript.permissionsManager.DTO.UserDTO;
-import com.printScript.permissionsManager.TestSecurityConfig;
-import com.printScript.permissionsManager.services.UserService;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,13 +26,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.printScript.permissionsManager.DTO.Response;
+import com.printScript.permissionsManager.DTO.UserDTO;
+import com.printScript.permissionsManager.TestSecurityConfig;
+import com.printScript.permissionsManager.services.UserService;
 
 @ActiveProfiles("test")
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -74,12 +75,13 @@ public class UserControllerTest {
         return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(value.getBytes());
     }
 
-    @Test
-    void testGetUsersPaginated() {
-        when(userService.getUsersPaginated(anyInt(), anyInt(), anyString())).thenReturn(Response.withData(List.of(new UserDTO("id", "username"))));
+  @Test
+  void testGetUsersPaginated() {
+    when(userService.getUsersPaginated(anyInt(), anyInt(), anyString()))
+        .thenReturn(Response.withData(List.of(new UserDTO("id", "username"))));
 
-        ResponseEntity<Object> response = userController.getUsersPaginated("1", "1", "prefix");
+    ResponseEntity<Object> response = userController.getUsersPaginated("1", "1", "prefix");
 
-        assertEquals(200, response.getStatusCodeValue());
-    }
+    assertEquals(200, response.getStatusCodeValue());
+  }
 }

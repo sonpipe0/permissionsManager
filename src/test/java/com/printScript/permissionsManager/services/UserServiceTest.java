@@ -1,11 +1,11 @@
 package com.printScript.permissionsManager.services;
 
-import com.printScript.permissionsManager.DTO.Error;
-import com.printScript.permissionsManager.DTO.Response;
-import com.printScript.permissionsManager.DTO.UserDTO;
-import com.printScript.permissionsManager.TestSecurityConfig;
-import com.printScript.permissionsManager.entities.User;
-import com.printScript.permissionsManager.repositories.UserRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,11 +22,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.printScript.permissionsManager.DTO.Error;
+import com.printScript.permissionsManager.DTO.Response;
+import com.printScript.permissionsManager.DTO.UserDTO;
+import com.printScript.permissionsManager.TestSecurityConfig;
+import com.printScript.permissionsManager.entities.User;
+import com.printScript.permissionsManager.repositories.UserRepository;
 
 @ActiveProfiles("test")
 @MockitoSettings(strictness = Strictness.LENIENT)

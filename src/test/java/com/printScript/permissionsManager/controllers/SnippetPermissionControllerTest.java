@@ -1,10 +1,12 @@
 package com.printScript.permissionsManager.controllers;
 
-import com.printScript.permissionsManager.DTO.Response;
-import com.printScript.permissionsManager.DTO.ShareSnippetDTO;
-import com.printScript.permissionsManager.TestSecurityConfig;
-import com.printScript.permissionsManager.entities.GrantType;
-import com.printScript.permissionsManager.services.SnippetPermissionService;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,12 +25,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.printScript.permissionsManager.DTO.Response;
+import com.printScript.permissionsManager.DTO.ShareSnippetDTO;
+import com.printScript.permissionsManager.TestSecurityConfig;
+import com.printScript.permissionsManager.entities.GrantType;
+import com.printScript.permissionsManager.services.SnippetPermissionService;
 
 @ActiveProfiles("test")
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -74,96 +75,118 @@ public class SnippetPermissionControllerTest {
         return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(value.getBytes());
     }
 
-    @Test
-    void testHasAccess() {
-        when(snippetPermissionService.hasAccess(anyString(), anyString())).thenReturn(Response.withData(true));
+  @Test
+  void testHasAccess() {
+    when(snippetPermissionService.hasAccess(anyString(), anyString()))
+        .thenReturn(Response.withData(true));
 
-        ResponseEntity<Object> response = snippetPermissionController.hasAccess("snippetId", Map.of("authorization", mockToken));
+    ResponseEntity<Object> response =
+        snippetPermissionController.hasAccess("snippetId", Map.of("authorization", mockToken));
 
-        assertEquals(200, response.getStatusCode().value());
+    assertEquals(200, response.getStatusCode().value());
 
-        when(snippetPermissionService.hasAccess(anyString(), anyString())).thenReturn(Response.withData(false));
+    when(snippetPermissionService.hasAccess(anyString(), anyString()))
+        .thenReturn(Response.withData(false));
 
-        ResponseEntity<Object> response2 = snippetPermissionController.hasAccess("snippetId", Map.of("authorization", mockToken));
+    ResponseEntity<Object> response2 =
+        snippetPermissionController.hasAccess("snippetId", Map.of("authorization", mockToken));
 
-        assertEquals(403, response2.getStatusCode().value());
-    }
+    assertEquals(403, response2.getStatusCode().value());
+  }
 
-    @Test
-    void testCanEdit() {
-        when(snippetPermissionService.canEdit(anyString(), anyString())).thenReturn(Response.withData(true));
+  @Test
+  void testCanEdit() {
+    when(snippetPermissionService.canEdit(anyString(), anyString()))
+        .thenReturn(Response.withData(true));
 
-        ResponseEntity<Object> response = snippetPermissionController.canEdit("snippetId", Map.of("authorization", mockToken));
+    ResponseEntity<Object> response =
+        snippetPermissionController.canEdit("snippetId", Map.of("authorization", mockToken));
 
-        assertEquals(200, response.getStatusCode().value());
+    assertEquals(200, response.getStatusCode().value());
 
-        when(snippetPermissionService.canEdit(anyString(), anyString())).thenReturn(Response.withData(false));
+    when(snippetPermissionService.canEdit(anyString(), anyString()))
+        .thenReturn(Response.withData(false));
 
-        ResponseEntity<Object> response2 = snippetPermissionController.canEdit("snippetId", Map.of("authorization", mockToken));
+    ResponseEntity<Object> response2 =
+        snippetPermissionController.canEdit("snippetId", Map.of("authorization", mockToken));
 
-        assertEquals(403, response2.getStatusCode().value());
-    }
+    assertEquals(403, response2.getStatusCode().value());
+  }
 
-    @Test
-    void testSaveRelation() {
-        when(snippetPermissionService.saveRelation(anyString(), anyString(), eq(GrantType.WRITE))).thenReturn(Response.withData(""));
+  @Test
+  void testSaveRelation() {
+    when(snippetPermissionService.saveRelation(anyString(), anyString(), eq(GrantType.WRITE)))
+        .thenReturn(Response.withData(""));
 
-        ResponseEntity<Object> response = snippetPermissionController.saveRelation("snippetId", Map.of("authorization", mockToken));
+    ResponseEntity<Object> response =
+        snippetPermissionController.saveRelation("snippetId", Map.of("authorization", mockToken));
 
-        assertEquals(200, response.getStatusCode().value());
-    }
+    assertEquals(200, response.getStatusCode().value());
+  }
 
-    @Test
-    void testDeleteRelation() {
-        when(snippetPermissionService.deleteRelation(anyString(), anyString())).thenReturn(Response.withData(""));
+  @Test
+  void testDeleteRelation() {
+    when(snippetPermissionService.deleteRelation(anyString(), anyString()))
+        .thenReturn(Response.withData(""));
 
-        ResponseEntity<Object> response = snippetPermissionController.deleteRelation("snippetId", Map.of("authorization", mockToken));
+    ResponseEntity<Object> response =
+        snippetPermissionController.deleteRelation("snippetId", Map.of("authorization", mockToken));
 
-        assertEquals(200, response.getStatusCode().value());
-    }
+    assertEquals(200, response.getStatusCode().value());
+  }
 
-    @Test
-    void testdeleteAllRelations() {
-        when(snippetPermissionService.deleteAllRelations(anyString())).thenReturn(Response.withData(""));
+  @Test
+  void testdeleteAllRelations() {
+    when(snippetPermissionService.deleteAllRelations(anyString()))
+        .thenReturn(Response.withData(""));
 
-        ResponseEntity<Object> response = snippetPermissionController.deleteAllRelations("snippetId", Map.of("authorization", mockToken));
+    ResponseEntity<Object> response =
+        snippetPermissionController.deleteAllRelations(
+            "snippetId", Map.of("authorization", mockToken));
 
-        assertEquals(200, response.getStatusCode().value());
-    }
+    assertEquals(200, response.getStatusCode().value());
+  }
 
-    @Test
-    void testSaveShareRelation() {
-        when(snippetPermissionService.saveShareRelation(any(ShareSnippetDTO.class), anyString())).thenReturn(Response.withData(""));
+  @Test
+  void testSaveShareRelation() {
+    when(snippetPermissionService.saveShareRelation(any(ShareSnippetDTO.class), anyString()))
+        .thenReturn(Response.withData(""));
 
-        ResponseEntity<Object> response = snippetPermissionController.saveShareRelation(new ShareSnippetDTO("snippetId", "username"), Map.of("authorization", mockToken));
+    ResponseEntity<Object> response =
+        snippetPermissionController.saveShareRelation(
+            new ShareSnippetDTO("snippetId", "username"), Map.of("authorization", mockToken));
 
-        assertEquals(200, response.getStatusCode().value());
-    }
+    assertEquals(200, response.getStatusCode().value());
+  }
 
-    @Test
-    void testGetRelations() {
-        when(snippetPermissionService.getSnippetGrants(anyString(), anyString())).thenReturn(Response.withData(null));
+  @Test
+  void testGetRelations() {
+    when(snippetPermissionService.getSnippetGrants(anyString(), anyString()))
+        .thenReturn(Response.withData(null));
 
-        ResponseEntity<Object> response = snippetPermissionController.getRelations("ALL", Map.of("authorization", mockToken));
+    ResponseEntity<Object> response =
+        snippetPermissionController.getRelations("ALL", Map.of("authorization", mockToken));
 
-        assertEquals(200, response.getStatusCode().value());
-    }
+    assertEquals(200, response.getStatusCode().value());
+  }
 
-    @Test
-    void testGetAllSnippetsByUser() {
-        when(snippetPermissionService.getAllSnippetsByUser(anyString())).thenReturn(Response.withData(null));
+  @Test
+  void testGetAllSnippetsByUser() {
+    when(snippetPermissionService.getAllSnippetsByUser(anyString()))
+        .thenReturn(Response.withData(null));
 
-        ResponseEntity<Object> response = snippetPermissionController.getAllSnippetsByUser(Map.of("authorization", mockToken));
+    ResponseEntity<Object> response =
+        snippetPermissionController.getAllSnippetsByUser(Map.of("authorization", mockToken));
 
-        assertEquals(200, response.getStatusCode().value());
-    }
+    assertEquals(200, response.getStatusCode().value());
+  }
 
-    @Test
-    void testGetSnippetAuthor() {
-        when(snippetPermissionService.getSnippetAuthor(anyString())).thenReturn(Response.withData(""));
+  @Test
+  void testGetSnippetAuthor() {
+    when(snippetPermissionService.getSnippetAuthor(anyString())).thenReturn(Response.withData(""));
 
-        ResponseEntity<Object> response = snippetPermissionController.getSnippetAuthor("snippetId");
+    ResponseEntity<Object> response = snippetPermissionController.getSnippetAuthor("snippetId");
 
-        assertEquals(200, response.getStatusCode().value());
-    }
+    assertEquals(200, response.getStatusCode().value());
+  }
 }

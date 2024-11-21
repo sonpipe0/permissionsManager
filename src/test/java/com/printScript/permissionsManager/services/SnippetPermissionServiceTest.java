@@ -6,17 +6,6 @@ import static org.mockito.Mockito.*;
 import java.util.List;
 import java.util.Optional;
 
-import com.printScript.permissionsManager.DTO.Response;
-import com.printScript.permissionsManager.DTO.ShareSnippetDTO;
-import com.printScript.permissionsManager.TestSecurityConfig;
-import com.printScript.permissionsManager.entities.GrantType;
-import com.printScript.permissionsManager.entities.SnippetPermission;
-import com.printScript.permissionsManager.entities.User;
-import com.printScript.permissionsManager.entities.UserGrantType;
-import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
-import com.printScript.permissionsManager.repositories.UserGrantTypeRepository;
-import com.printScript.permissionsManager.repositories.UserRepository;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +22,19 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
+
+import com.printScript.permissionsManager.DTO.Response;
+import com.printScript.permissionsManager.DTO.ShareSnippetDTO;
+import com.printScript.permissionsManager.TestSecurityConfig;
+import com.printScript.permissionsManager.entities.GrantType;
+import com.printScript.permissionsManager.entities.SnippetPermission;
+import com.printScript.permissionsManager.entities.User;
+import com.printScript.permissionsManager.entities.UserGrantType;
+import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
+import com.printScript.permissionsManager.repositories.UserGrantTypeRepository;
+import com.printScript.permissionsManager.repositories.UserRepository;
+
+import jakarta.transaction.Transactional;
 
 @ActiveProfiles("test")
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -152,14 +154,17 @@ public class SnippetPermissionServiceTest {
     @Test
     @Transactional
     void testGetSnippetGrants() {
-        SnippetPermissionService.SnippetPermissionGrantResponse snippetPermissionGrantResponse = new SnippetPermissionService.SnippetPermissionGrantResponse("snippetId", "username");
+        SnippetPermissionService.SnippetPermissionGrantResponse snippetPermissionGrantResponse = new SnippetPermissionService.SnippetPermissionGrantResponse(
+                "snippetId", "username");
 
-        Response<List<SnippetPermissionService.SnippetPermissionGrantResponse>> response = snippetPermissionService.getSnippetGrants("userId", "ALL");
+        Response<List<SnippetPermissionService.SnippetPermissionGrantResponse>> response = snippetPermissionService
+                .getSnippetGrants("userId", "ALL");
 
         assertEquals(1, response.getData().size());
         assertEquals(snippetPermissionGrantResponse, response.getData().getFirst());
 
-        Response<List<SnippetPermissionService.SnippetPermissionGrantResponse>> response1 = snippetPermissionService.getSnippetGrants("userId", "WRITE");
+        Response<List<SnippetPermissionService.SnippetPermissionGrantResponse>> response1 = snippetPermissionService
+                .getSnippetGrants("userId", "WRITE");
 
         assertEquals(1, response1.getData().size());
         assertEquals(snippetPermissionGrantResponse, response1.getData().getFirst());
@@ -179,7 +184,8 @@ public class SnippetPermissionServiceTest {
         Response<String> response = snippetPermissionService.deleteRelation("snippetId", "userId1");
 
         assertEquals("Relationship deleted", response.getData());
-        assertNull(userGrantTypeRepository.findByUserAndSnippetPermission(userRepository.findById("userId1").get(), snippetPermissionRepository.findById("snippetId").get()));
+        assertNull(userGrantTypeRepository.findByUserAndSnippetPermission(userRepository.findById("userId1").get(),
+                snippetPermissionRepository.findById("snippetId").get()));
     }
 
     @Test
@@ -206,7 +212,11 @@ public class SnippetPermissionServiceTest {
         Response<String> response = snippetPermissionService.saveShareRelation(shareSnippetDTO, "userId");
 
         assertEquals("Snippet shared", response.getData());
-        assertEquals("username2", userGrantTypeRepository.findByUserAndSnippetPermission(userRepository.findById("userId2").get(), snippetPermissionRepository.findById("snippetId").get()).getUser().getUsername());
-        assertEquals(GrantType.READ, userGrantTypeRepository.findByUserAndSnippetPermission(userRepository.findById("userId2").get(), snippetPermissionRepository.findById("snippetId").get()).getGrantType());
+        assertEquals("username2",
+                userGrantTypeRepository.findByUserAndSnippetPermission(userRepository.findById("userId2").get(),
+                        snippetPermissionRepository.findById("snippetId").get()).getUser().getUsername());
+        assertEquals(GrantType.READ,
+                userGrantTypeRepository.findByUserAndSnippetPermission(userRepository.findById("userId2").get(),
+                        snippetPermissionRepository.findById("snippetId").get()).getGrantType());
     }
 }
