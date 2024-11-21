@@ -7,9 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.printScript.permissionsManager.DTO.*;
 import com.printScript.permissionsManager.DTO.Error;
-import com.printScript.permissionsManager.DTO.Response;
-import com.printScript.permissionsManager.DTO.ShareSnippetDTO;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.entities.SnippetPermission;
 import com.printScript.permissionsManager.entities.User;
@@ -112,13 +111,6 @@ public class SnippetPermissionService {
                 .filter(userGrantType -> userGrantType.getGrantType().equals(GrantType.WRITE))
                 .map(userGrantType -> userGrantType.getUser().getUsername()).findFirst().orElse(null);
         return Response.withData(author);
-    }
-
-    public enum FilterType {
-        ALL, READ, WRITE
-    }
-
-    public record SnippetPermissionGrantResponse(String snippetId, String author) {
     }
 
     public Response<List<SnippetPermissionGrantResponse>> getSnippetGrants(String userId, String filterType) {
