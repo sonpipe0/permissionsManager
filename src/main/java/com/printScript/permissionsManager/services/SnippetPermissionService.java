@@ -33,6 +33,7 @@ public class SnippetPermissionService {
 
     @Autowired
     UserGrantTypeRepository userGrantTypeRepository;
+    private List<UserGrantType> userGrantTypes;
 
     public Response<Boolean> hasAccess(String snippetId, String userId) {
         User user = userRepository.findById(userId).orElse(null);
