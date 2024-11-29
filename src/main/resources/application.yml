@@ -21,4 +21,9 @@ spring:
           client-secret: ${AUTH_CLIENT_SECRET}
 auth0:
   audience: ${AUTH0_AUDIENCE}
-
+logging:
+  level:
+    root: INFO
+    com.printScript: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{correlationId}] - %msg%n"
