@@ -29,11 +29,7 @@ import com.printScript.permissionsManager.DTO.SnippetPermissionGrantResponse;
 import com.printScript.permissionsManager.TestSecurityConfig;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.entities.SnippetPermission;
-import com.printScript.permissionsManager.entities.User;
-import com.printScript.permissionsManager.entities.UserGrantType;
 import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
-import com.printScript.permissionsManager.repositories.UserGrantTypeRepository;
-import com.printScript.permissionsManager.repositories.UserRepository;
 
 import jakarta.transaction.Transactional;
 

@@ -1,7 +1,5 @@
 package com.printScript.permissionsManager.entities;
 
-import java.util.List;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,8 +14,16 @@ import lombok.Setter;
 @Setter
 public class SnippetPermission {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private String id;
+
+    @Id
+    @Column(name = "snippetId", unique = true)
     private String snippetId;
 
-    @OneToMany(mappedBy = "snippetPermission", cascade = CascadeType.ALL)
-    private List<UserGrantType> userGrantTypes;
+    @Id
+    @Column(name = "id", unique = true)
+    private String userId;
+
+    private GrantType GrantType;
 }

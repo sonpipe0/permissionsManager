@@ -26,8 +26,6 @@ import com.printScript.permissionsManager.DTO.Error;
 import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.DTO.UserDTO;
 import com.printScript.permissionsManager.TestSecurityConfig;
-import com.printScript.permissionsManager.entities.User;
-import com.printScript.permissionsManager.repositories.UserRepository;
 
 @ActiveProfiles("test")
 @MockitoSettings(strictness = Strictness.LENIENT)

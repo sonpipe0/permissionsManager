@@ -29,7 +29,6 @@ import org.springframework.test.context.ActiveProfiles;
 import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.DTO.UserDTO;
 import com.printScript.permissionsManager.TestSecurityConfig;
-import com.printScript.permissionsManager.services.UserService;
 
 @ActiveProfiles("test")
 @MockitoSettings(strictness = Strictness.LENIENT)
