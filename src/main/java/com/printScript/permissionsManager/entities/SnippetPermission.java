@@ -15,15 +15,12 @@ import lombok.Setter;
 public class SnippetPermission {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
 
-    @Id
-    @Column(name = "snippetId", unique = true)
     private String snippetId;
 
-    @Id
-    @Column(name = "id", unique = true)
     private String userId;
 
-    private GrantType GrantType;
+    @Enumerated(EnumType.STRING)
+    private GrantType grantType;
 }

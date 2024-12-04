@@ -1,5 +1,7 @@
 package com.printScript.permissionsManager.services;
 
+import static com.printScript.permissionsManager.utils.TokenUtils.getUsernameByUserId;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -14,8 +16,6 @@ import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.entities.SnippetPermission;
 import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
 
-import static com.printScript.permissionsManager.utils.TokenUtils.getUsernameByUserId;
-
 @Service
 public class SnippetPermissionService {
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SnippetPermissionService.class);
@@ -24,14 +24,16 @@ public class SnippetPermissionService {
     SnippetPermissionRepository snippetPermissionRepository;
 
     public Response<Boolean> hasAccess(String snippetId, String userId) {
-        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findBySnippetIdAndUserId(snippetId,userId);
+        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findBySnippetIdAndUserId(snippetId,
+                userId);
         if (snippetPermission.isEmpty())
             return Response.withError(new Error(404, "Snippet permission not found"));
         return Response.withData(true);
     }
 
     public Response<String> saveRelation(String snippetId, String userId, GrantType grantType) {
-        Optional<SnippetPermission> snippetPermissionOpt = snippetPermissionRepository.findBySnippetIdAndUserId(snippetId, userId);
+        Optional<SnippetPermission> snippetPermissionOpt = snippetPermissionRepository
+                .findBySnippetIdAndUserId(snippetId, userId);
         if (snippetPermissionOpt.isEmpty()) {
             try {
                 SnippetPermission snippetPermission = new SnippetPermission();
@@ -49,7 +51,8 @@ public class SnippetPermissionService {
     }
 
     public Response<Boolean> canEdit(String snippetId, String userId) {
-        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findBySnippetIdAndUserId(snippetId, userId);
+        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findBySnippetIdAndUserId(snippetId,
+                userId);
         if (snippetPermission.isEmpty())
             return Response.withError(new Error(404, "Snippet permission not found"));
         boolean canEdit = snippetPermission.get().getGrantType().equals(GrantType.WRITE);
@@ -57,7 +60,8 @@ public class SnippetPermissionService {
     }
 
     public Response<String> getSnippetAuthor(String snippetId, String token) {
-        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findBySnippetIdAndGrantType(snippetId, GrantType.WRITE);
+        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository
+                .findBySnippetIdAndGrantType(snippetId, GrantType.WRITE);
         if (snippetPermission.isEmpty())
             return Response.withError(new Error(404, "Snippet permission not found"));
         String userId = snippetPermission.get().getUserId();
@@ -73,22 +77,25 @@ public class SnippetPermissionService {
         FilterType filter = FilterType.valueOf(filterType);
         List<SnippetPermission> snippetPermissions = snippetPermissionRepository.findAllByUserId(userId);
         if (filter != FilterType.ALL) {
-            snippetPermissions = snippetPermissions.stream()
-                    .filter(snippetPermission -> snippetPermission.getGrantType().equals(GrantType.valueOf(filter.name())))
+            snippetPermissions = snippetPermissions.stream().filter(
+                    snippetPermission -> snippetPermission.getGrantType().equals(GrantType.valueOf(filter.name())))
                     .toList();
         }
         return Response.withData(snippetPermissions.stream()
-                .map(snippetPermission -> new SnippetPermissionGrantResponse(snippetPermission.getSnippetId(), snippetPermission.getUserId()))
+                .map(snippetPermission -> new SnippetPermissionGrantResponse(snippetPermission.getSnippetId(),
+                        snippetPermission.getUserId()))
                 .toList());
     }
 
     public Response<List<String>> getAllSnippetsByUser(String userId) {
-        List<SnippetPermission> snippetPermissions = snippetPermissionRepository.findAllByUserIdAndGrantType(userId, GrantType.WRITE);
+        List<SnippetPermission> snippetPermissions = snippetPermissionRepository.findAllByUserIdAndGrantType(userId,
+                GrantType.WRITE);
         return Response.withData(snippetPermissions.stream().map(SnippetPermission::getSnippetId).toList());
     }
 
     public Response<String> deleteRelation(String snippetId, String userId) {
-        Optional<SnippetPermission> snippetPermissionOpt = snippetPermissionRepository.findBySnippetIdAndUserId(snippetId, userId);
+        Optional<SnippetPermission> snippetPermissionOpt = snippetPermissionRepository
+                .findBySnippetIdAndUserId(snippetId, userId);
         if (snippetPermissionOpt.isEmpty())
             return Response.withError(new Error(404, "Snippet not found"));
         try {
@@ -119,7 +126,8 @@ public class SnippetPermissionService {
             return Response.withError(new Error(403, "Share Access Denied"));
         }
         try {
-            Response<String> response = saveRelation(shareSnippetDTO.getSnippetId(), shareSnippetDTO.getUserId(), GrantType.READ);
+            Response<String> response = saveRelation(shareSnippetDTO.getSnippetId(), shareSnippetDTO.getUserId(),
+                    GrantType.READ);
             if (response.isError())
                 return response;
         } catch (Exception e) {

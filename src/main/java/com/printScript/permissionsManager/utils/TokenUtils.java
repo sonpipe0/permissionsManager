@@ -3,14 +3,14 @@ package com.printScript.permissionsManager.utils;
 import java.io.IOException;
 import java.util.Map;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import okhttp3.ResponseBody;
 
 public class TokenUtils {
@@ -22,12 +22,8 @@ public class TokenUtils {
     public static ResponseBody getUsernames(String token) throws IOException {
         OkHttpClient client = new OkHttpClient();
 
-        Request request = new Request.Builder()
-                .url("https://dev-g1sija0qkp7jodd2.auth0.com/api/v2/users")
-                .get()
-                .addHeader("authorization", "Bearer " + token)
-                .addHeader("cache-control", "no-cache")
-                .build();
+        Request request = new Request.Builder().url("https://dev-g1sija0qkp7jodd2.auth0.com/api/v2/users").get()
+                .addHeader("authorization", "Bearer " + token).addHeader("cache-control", "no-cache").build();
 
         Response response = client.newCall(request).execute();
         return response.body();
@@ -47,6 +43,6 @@ public class TokenUtils {
             }
         }
 
-        return null; // or throw an exception if user not found
+        return null;
     }
 }
