@@ -7,7 +7,6 @@ import static org.mockito.Mockito.*;
 import java.util.List;
 import java.util.Optional;
 
-import com.printScript.permissionsManager.utils.TokenUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +32,7 @@ import com.printScript.permissionsManager.TestSecurityConfig;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.entities.SnippetPermission;
 import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
+import com.printScript.permissionsManager.utils.TokenUtils;
 
 import jakarta.transaction.Transactional;
 
@@ -110,7 +110,8 @@ public class SnippetPermissionServiceTest {
         Response<String> response = snippetPermissionService.saveRelation("snippetId1", "userId", GrantType.WRITE);
 
         assertEquals("Relationship saved", response.getData());
-        assertEquals("snippetId1", snippetPermissionRepository.findBySnippetIdAndUserId("snippetId1", "userId").get().getSnippetId());
+        assertEquals("snippetId1",
+                snippetPermissionRepository.findBySnippetIdAndUserId("snippetId1", "userId").get().getSnippetId());
 
         Response<String> response2 = snippetPermissionService.saveRelation("snippetId1", "userId", GrantType.WRITE);
 
@@ -193,5 +194,48 @@ public class SnippetPermissionServiceTest {
 
         assertEquals("Snippet shared", response.getData());
         assertNotNull(snippetPermissionRepository.findBySnippetIdAndUserId("snippetId", "userId2"));
+    }
+
+    @Test
+    void testSaveRelation_AlreadyExists() {
+        snippetPermissionService.saveRelation("snippetId", "userId", GrantType.WRITE);
+        Response<String> response = snippetPermissionService.saveRelation("snippetId", "userId", GrantType.WRITE);
+        assertEquals(409, response.getError().code());
+    }
+
+    @Test
+    void testGetSnippetAuthor_NotFound() {
+        Response<String> response = snippetPermissionService.getSnippetAuthor("nonExistentSnippetId", mockToken);
+        assertEquals(404, response.getError().code());
+    }
+
+    @Test
+    void testDeleteRelation_NotFound() {
+        Response<String> response = snippetPermissionService.deleteRelation("nonExistentSnippetId", "userId");
+        assertEquals(404, response.getError().code());
+    }
+
+    @Test
+    void testDeleteAllRelations_NotFound() {
+        Response<String> response = snippetPermissionService.deleteAllRelations("nonExistentSnippetId");
+        assertEquals(404, response.getError().code());
+    }
+
+    @Test
+    void testSaveShareRelation_NoEditPermission() {
+        ShareSnippetDTO shareSnippetDTO = new ShareSnippetDTO();
+        shareSnippetDTO.setSnippetId("snippetId2");
+        shareSnippetDTO.setUserId("userId2");
+
+        Response<String> response = snippetPermissionService.saveShareRelation(shareSnippetDTO, "userId");
+        Response<String> response2 = snippetPermissionService.saveShareRelation(shareSnippetDTO, "userId");
+
+        assertEquals(404, response2.getError().code());
+    }
+
+    @Test
+    void testHasNoAccess() {
+        Response<Boolean> response = snippetPermissionService.hasAccess("nonExistentSnippetId", "userId");
+        assertEquals(404, response.getError().code());
     }
 }
