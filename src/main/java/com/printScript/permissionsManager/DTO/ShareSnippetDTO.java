@@ -13,5 +13,5 @@ public class ShareSnippetDTO {
 
     private String snippetId;
 
-    private String username;
+    private String userId;
 }

@@ -1,5 +1,6 @@
 package com.printScript.permissionsManager.services;
 
+import static com.printScript.permissionsManager.utils.TokenUtils.getUsernameByUserId;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -29,11 +31,8 @@ import com.printScript.permissionsManager.DTO.SnippetPermissionGrantResponse;
 import com.printScript.permissionsManager.TestSecurityConfig;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.entities.SnippetPermission;
-import com.printScript.permissionsManager.entities.User;
-import com.printScript.permissionsManager.entities.UserGrantType;
 import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
-import com.printScript.permissionsManager.repositories.UserGrantTypeRepository;
-import com.printScript.permissionsManager.repositories.UserRepository;
+import com.printScript.permissionsManager.utils.TokenUtils;
 
 import jakarta.transaction.Transactional;
 
@@ -45,12 +44,6 @@ import jakarta.transaction.Transactional;
 public class SnippetPermissionServiceTest {
     @Autowired
     private SnippetPermissionRepository snippetPermissionRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private UserGrantTypeRepository userGrantTypeRepository;
 
     @Autowired
     private SnippetPermissionService snippetPermissionService;
@@ -82,38 +75,22 @@ public class SnippetPermissionServiceTest {
 
         SecurityContextHolder.setContext(securityContext);
 
-        User user = new User();
-        user.setUserId("userId");
-        user.setUsername("username");
-        userRepository.save(user);
-
-        User user1 = new User();
-        user1.setUserId("userId1");
-        user1.setUsername("username1");
-        userRepository.save(user1);
-
         SnippetPermission snippetPermission = new SnippetPermission();
         snippetPermission.setSnippetId("snippetId");
+        snippetPermission.setUserId("userId");
+        snippetPermission.setGrantType(GrantType.WRITE);
         snippetPermissionRepository.save(snippetPermission);
 
-        UserGrantType userGrantType = new UserGrantType();
-        userGrantType.setGrantType(GrantType.WRITE);
-        userGrantType.setUser(user);
-        userGrantType.setSnippetPermission(snippetPermission);
-
-        UserGrantType userGrantType1 = new UserGrantType();
-        userGrantType1.setGrantType(GrantType.READ);
-        userGrantType1.setUser(user1);
-        userGrantType1.setSnippetPermission(snippetPermission);
-
-        snippetPermission.setUserGrantTypes(List.of(userGrantType, userGrantType1));
-        snippetPermissionRepository.save(snippetPermission);
+        SnippetPermission snippetPermission2 = new SnippetPermission();
+        snippetPermission2.setSnippetId("snippetId2");
+        snippetPermission2.setUserId("userId2");
+        snippetPermission2.setGrantType(GrantType.READ);
+        snippetPermissionRepository.save(snippetPermission2);
     }
 
     @AfterEach
     void tearDown() {
         snippetPermissionRepository.deleteAll();
-        userRepository.deleteAll();
     }
 
     private String base64Encode(String value) {
@@ -133,7 +110,8 @@ public class SnippetPermissionServiceTest {
         Response<String> response = snippetPermissionService.saveRelation("snippetId1", "userId", GrantType.WRITE);
 
         assertEquals("Relationship saved", response.getData());
-        assertEquals("snippetId1", snippetPermissionRepository.findById("snippetId1").get().getSnippetId());
+        assertEquals("snippetId1",
+                snippetPermissionRepository.findBySnippetIdAndUserId("snippetId1", "userId").get().getSnippetId());
 
         Response<String> response2 = snippetPermissionService.saveRelation("snippetId1", "userId", GrantType.WRITE);
 
@@ -151,16 +129,20 @@ public class SnippetPermissionServiceTest {
     @Test
     @Transactional
     void testGetSnippetAuthor() {
-        Response<String> response = snippetPermissionService.getSnippetAuthor("snippetId");
+        try (MockedStatic<TokenUtils> mockedTokenUtils = mockStatic(TokenUtils.class)) {
+            mockedTokenUtils.when(() -> getUsernameByUserId(anyString(), anyString())).thenReturn("username");
 
-        assertEquals("username", response.getData());
+            Response<String> response = snippetPermissionService.getSnippetAuthor("snippetId", mockToken);
+
+            assertEquals("username", response.getData());
+        }
     }
 
     @Test
     @Transactional
     void testGetSnippetGrants() {
         SnippetPermissionGrantResponse snippetPermissionGrantResponse = new SnippetPermissionGrantResponse("snippetId",
-                "username");
+                "userId");
 
         Response<List<SnippetPermissionGrantResponse>> response = snippetPermissionService.getSnippetGrants("userId",
                 "ALL");
@@ -186,11 +168,10 @@ public class SnippetPermissionServiceTest {
     @Test
     @Transactional
     void testDeleteRelation() {
-        Response<String> response = snippetPermissionService.deleteRelation("snippetId", "userId1");
+        Response<String> response = snippetPermissionService.deleteRelation("snippetId", "userId");
 
         assertEquals("Relationship deleted", response.getData());
-        assertNull(userGrantTypeRepository.findByUserAndSnippetPermission(userRepository.findById("userId1").get(),
-                snippetPermissionRepository.findById("snippetId").get()));
+        assertEquals(Optional.empty(), snippetPermissionRepository.findBySnippetIdAndUserId("snippetId", "userId"));
     }
 
     @Test
@@ -199,29 +180,62 @@ public class SnippetPermissionServiceTest {
         Response<String> response = snippetPermissionService.deleteAllRelations("snippetId");
 
         assertEquals("All relationships deleted", response.getData());
-        assertEquals(Optional.empty(), snippetPermissionRepository.findById("snippetId"));
+        assertEquals(Optional.empty(), snippetPermissionRepository.findBySnippetIdAndUserId("snippetId", "userId"));
     }
 
     @Test
     @Transactional
     void testSaveShareRelation() {
-        User user = new User();
-        user.setUserId("userId2");
-        user.setUsername("username2");
-        userRepository.save(user);
-
         ShareSnippetDTO shareSnippetDTO = new ShareSnippetDTO();
         shareSnippetDTO.setSnippetId("snippetId");
-        shareSnippetDTO.setUsername("username2");
+        shareSnippetDTO.setUserId("userId2");
 
         Response<String> response = snippetPermissionService.saveShareRelation(shareSnippetDTO, "userId");
 
         assertEquals("Snippet shared", response.getData());
-        assertEquals("username2",
-                userGrantTypeRepository.findByUserAndSnippetPermission(userRepository.findById("userId2").get(),
-                        snippetPermissionRepository.findById("snippetId").get()).getUser().getUsername());
-        assertEquals(GrantType.READ,
-                userGrantTypeRepository.findByUserAndSnippetPermission(userRepository.findById("userId2").get(),
-                        snippetPermissionRepository.findById("snippetId").get()).getGrantType());
+        assertNotNull(snippetPermissionRepository.findBySnippetIdAndUserId("snippetId", "userId2"));
+    }
+
+    @Test
+    void testSaveRelation_AlreadyExists() {
+        snippetPermissionService.saveRelation("snippetId", "userId", GrantType.WRITE);
+        Response<String> response = snippetPermissionService.saveRelation("snippetId", "userId", GrantType.WRITE);
+        assertEquals(409, response.getError().code());
+    }
+
+    @Test
+    void testGetSnippetAuthor_NotFound() {
+        Response<String> response = snippetPermissionService.getSnippetAuthor("nonExistentSnippetId", mockToken);
+        assertEquals(404, response.getError().code());
+    }
+
+    @Test
+    void testDeleteRelation_NotFound() {
+        Response<String> response = snippetPermissionService.deleteRelation("nonExistentSnippetId", "userId");
+        assertEquals(404, response.getError().code());
+    }
+
+    @Test
+    void testDeleteAllRelations_NotFound() {
+        Response<String> response = snippetPermissionService.deleteAllRelations("nonExistentSnippetId");
+        assertEquals(404, response.getError().code());
+    }
+
+    @Test
+    void testSaveShareRelation_NoEditPermission() {
+        ShareSnippetDTO shareSnippetDTO = new ShareSnippetDTO();
+        shareSnippetDTO.setSnippetId("snippetId2");
+        shareSnippetDTO.setUserId("userId2");
+
+        Response<String> response = snippetPermissionService.saveShareRelation(shareSnippetDTO, "userId");
+        Response<String> response2 = snippetPermissionService.saveShareRelation(shareSnippetDTO, "userId");
+
+        assertEquals(404, response2.getError().code());
+    }
+
+    @Test
+    void testHasNoAccess() {
+        Response<Boolean> response = snippetPermissionService.hasAccess("nonExistentSnippetId", "userId");
+        assertEquals(404, response.getError().code());
     }
 }
