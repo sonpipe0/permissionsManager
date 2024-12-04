@@ -19,21 +19,19 @@ public class TokenUtils {
         return Map.of("userId", decodedJWT.getSubject(), "username", decodedJWT.getClaim("username").asString());
     }
 
-    public static ResponseBody getUsernames(String token) throws IOException {
+    public static String getUsernameByUserId(String token, String userId) throws IOException {
         OkHttpClient client = new OkHttpClient();
 
         Request request = new Request.Builder().url("https://dev-g1sija0qkp7jodd2.auth0.com/api/v2/users").get()
                 .addHeader("authorization", "Bearer " + token).addHeader("cache-control", "no-cache").build();
 
         Response response = client.newCall(request).execute();
-        return response.body();
-    }
+        ResponseBody responseBody = response.body();
 
-    public static String getUsernameByUserId(String token, String userId) throws IOException {
-        ResponseBody responseBody = getUsernames(token);
         if (responseBody == null) {
             throw new IOException("Response body is null");
         }
+
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode usersNode = objectMapper.readTree(responseBody.string());
 
@@ -45,4 +43,6 @@ public class TokenUtils {
 
         return null;
     }
+
+
 }

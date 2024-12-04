@@ -4,14 +4,15 @@ import static com.printScript.permissionsManager.utils.TokenUtils.getUsernameByU
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import com.printScript.permissionsManager.utils.TokenUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -126,11 +127,14 @@ public class SnippetPermissionServiceTest {
 
     @Test
     @Transactional
-    void testGetSnippetAuthor() throws IOException {
-        when(getUsernameByUserId(anyString(),anyString())).thenReturn("username");
-        Response<String> response = snippetPermissionService.getSnippetAuthor("snippetId", mockToken);
+    void testGetSnippetAuthor() {
+        try (MockedStatic<TokenUtils> mockedTokenUtils = mockStatic(TokenUtils.class)) {
+            mockedTokenUtils.when(() -> getUsernameByUserId(anyString(), anyString())).thenReturn("username");
 
-        assertEquals("username", response.getData());
+            Response<String> response = snippetPermissionService.getSnippetAuthor("snippetId", mockToken);
+
+            assertEquals("username", response.getData());
+        }
     }
 
     @Test
