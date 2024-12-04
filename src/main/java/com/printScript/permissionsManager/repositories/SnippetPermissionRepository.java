@@ -16,4 +16,6 @@ public interface SnippetPermissionRepository extends JpaRepository<SnippetPermis
     List<SnippetPermission> findAllByUserIdAndGrantType(String userId, GrantType grantType);
 
     List<SnippetPermission> findAllBySnippetId(String snippetId);
+
+    Optional<SnippetPermission> findBySnippetIdAndGrantType(String snippetId, GrantType grantType);
 }

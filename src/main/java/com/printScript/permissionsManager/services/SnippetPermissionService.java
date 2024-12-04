@@ -1,5 +1,6 @@
 package com.printScript.permissionsManager.services;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +13,8 @@ import com.printScript.permissionsManager.DTO.Error;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.entities.SnippetPermission;
 import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
+
+import static com.printScript.permissionsManager.utils.TokenUtils.getUsernameByUserId;
 
 @Service
 public class SnippetPermissionService {
@@ -53,14 +56,17 @@ public class SnippetPermissionService {
         return Response.withData(canEdit);
     }
 
-    public Response<String> getSnippetAuthor(String snippetId) {
-        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
+    public Response<String> getSnippetAuthor(String snippetId, String token) {
+        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findBySnippetIdAndGrantType(snippetId, GrantType.WRITE);
         if (snippetPermission.isEmpty())
-            return Response.withError(new Error(404, "Snippet not found"));
-        String author = snippetPermission.get().getUserGrantTypes().stream()
-                .filter(userGrantType -> userGrantType.getGrantType().equals(GrantType.WRITE))
-                .map(userGrantType -> userGrantType.getUser().getUsername()).findFirst().orElse(null);
-        return Response.withData(author);
+            return Response.withError(new Error(404, "Snippet permission not found"));
+        String userId = snippetPermission.get().getUserId();
+        try {
+            String author = getUsernameByUserId(userId, token);
+            return Response.withData(author);
+        } catch (IOException e) {
+            return Response.withError(new Error(500, e.getMessage()));
+        }
     }
 
     public Response<List<SnippetPermissionGrantResponse>> getSnippetGrants(String userId, String filterType) {

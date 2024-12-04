@@ -147,7 +147,7 @@ public class SnippetPermissionServiceTest {
     @Test
     @Transactional
     void testGetSnippetAuthor() {
-        Response<String> response = snippetPermissionService.getSnippetAuthor("snippetId");
+        Response<String> response = snippetPermissionService.getSnippetAuthor("snippetId", "userId");
 
         assertEquals("username", response.getData());
     }

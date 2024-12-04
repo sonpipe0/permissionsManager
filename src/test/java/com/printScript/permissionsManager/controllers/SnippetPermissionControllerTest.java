@@ -208,9 +208,9 @@ public class SnippetPermissionControllerTest {
 
   @Test
   void testGetSnippetAuthor() {
-    when(snippetPermissionService.getSnippetAuthor(anyString())).thenReturn(Response.withData(""));
+    when(snippetPermissionService.getSnippetAuthor(anyString(), anyString())).thenReturn(Response.withData(""));
 
-    ResponseEntity<Object> response = snippetPermissionController.getSnippetAuthor("snippetId");
+    ResponseEntity<Object> response = snippetPermissionController.getSnippetAuthor("snippetId", Map.of("authorization", mockToken));
 
     assertEquals(200, response.getStatusCode().value());
   }

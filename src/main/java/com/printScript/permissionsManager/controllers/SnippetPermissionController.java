@@ -141,8 +141,9 @@ public class SnippetPermissionController {
     }
 
     @GetMapping("/get/author")
-    public ResponseEntity<Object> getSnippetAuthor(@RequestParam String snippetId) {
-        Response<String> response = snippetPermissionService.getSnippetAuthor(snippetId);
+    public ResponseEntity<Object> getSnippetAuthor(@RequestParam String snippetId, @RequestHeader Map<String, String> headers) {
+        String token = headers.get("authorization").substring(7);
+        Response<String> response = snippetPermissionService.getSnippetAuthor(snippetId, token);
         if (response.isError()) {
             return new ResponseEntity<>(response.getError().message(), HttpStatus.valueOf(response.getError().code()));
         }
