@@ -94,8 +94,8 @@ public class UserService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        String body = "grant_type=client_credentials" + "&client_id=" + System.getenv("AUTH_CLIENT_ID_API")
-                + "&client_secret=" + System.getenv("AUTH_CLIENT_SECRET_API") + "&audience="
+        String body = "grant_type=client_credentials" + "&client_id=" + System.getenv("AUTH_CLIENT_ID")
+                + "&client_secret=" + System.getenv("AUTH_CLIENT_SECRET") + "&audience="
                 + System.getenv("AUTH0_AUDIENCE_API");
 
         HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
