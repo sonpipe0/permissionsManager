@@ -24,10 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.printScript.permissionsManager.DTO.Response;
-import com.printScript.permissionsManager.DTO.ShareSnippetDTO;
-import com.printScript.permissionsManager.DTO.SnippetPermissionGrantResponse;
-import com.printScript.permissionsManager.DTO.UserInfo;
+import com.printScript.permissionsManager.DTO.*;
 import com.printScript.permissionsManager.TestSecurityConfig;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.entities.SnippetPermission;
@@ -187,7 +184,9 @@ public class SnippetPermissionServiceTest {
     void testSaveShareRelation() {
         ShareSnippetDTO shareSnippetDTO = new ShareSnippetDTO();
         shareSnippetDTO.setSnippetId("snippetId");
-        shareSnippetDTO.setUserId("userId2");
+        shareSnippetDTO.setUsername("username2");
+
+        when(userService.getAllUsers()).thenReturn(List.of(new UserDTO("userId2", "email2", "username2")));
 
         Response<String> response = snippetPermissionService.saveShareRelation(shareSnippetDTO, "userId");
 
@@ -224,7 +223,7 @@ public class SnippetPermissionServiceTest {
     void testSaveShareRelation_NoEditPermission() {
         ShareSnippetDTO shareSnippetDTO = new ShareSnippetDTO();
         shareSnippetDTO.setSnippetId("snippetId2");
-        shareSnippetDTO.setUserId("userId2");
+        shareSnippetDTO.setUsername("username2");
 
         Response<String> response = snippetPermissionService.saveShareRelation(shareSnippetDTO, "userId");
         Response<String> response2 = snippetPermissionService.saveShareRelation(shareSnippetDTO, "userId");

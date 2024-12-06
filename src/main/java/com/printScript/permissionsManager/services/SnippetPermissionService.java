@@ -130,9 +130,11 @@ public class SnippetPermissionService {
         if (!canEdit.getData()) {
             return Response.withError(new Error(403, "Share Access Denied"));
         }
+        String userIdToShare = userService.getAllUsers().stream()
+                .filter(user -> user.getUsername().equals(shareSnippetDTO.getUsername())).findFirst()
+                .map(UserDTO::getUser_id).orElse(null);
         try {
-            Response<String> response = saveRelation(shareSnippetDTO.getSnippetId(), shareSnippetDTO.getUserId(),
-                    GrantType.READ);
+            Response<String> response = saveRelation(shareSnippetDTO.getSnippetId(), userIdToShare, GrantType.READ);
             if (response.isError())
                 return response;
         } catch (Exception e) {
