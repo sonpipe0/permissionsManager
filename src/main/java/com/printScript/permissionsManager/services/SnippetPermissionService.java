@@ -3,6 +3,7 @@ package com.printScript.permissionsManager.services;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,150 +12,99 @@ import com.printScript.permissionsManager.DTO.*;
 import com.printScript.permissionsManager.DTO.Error;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.entities.SnippetPermission;
-import com.printScript.permissionsManager.entities.User;
-import com.printScript.permissionsManager.entities.UserGrantType;
 import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
-import com.printScript.permissionsManager.repositories.UserGrantTypeRepository;
-import com.printScript.permissionsManager.repositories.UserRepository;
+import com.printScript.permissionsManager.utils.UserService;
 
 @Service
 public class SnippetPermissionService {
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SnippetPermissionService.class);
 
     @Autowired
-    UserRepository userRepository;
+    SnippetPermissionRepository snippetPermissionRepository;
 
     @Autowired
     UserService userService;
 
-    @Autowired
-    SnippetPermissionRepository snippetPermissionRepository;
-
-    @Autowired
-    UserGrantTypeRepository userGrantTypeRepository;
-    private List<UserGrantType> userGrantTypes;
+    private final Logger log = LoggerFactory.getLogger(SnippetPermissionService.class);
 
     public Response<Boolean> hasAccess(String snippetId, String userId) {
-        User user = userRepository.findById(userId).orElse(null);
-        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
+        log.info("hasAccess was called");
+        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findBySnippetIdAndUserId(snippetId,
+                userId);
         if (snippetPermission.isEmpty())
-            return Response.withError(new Error(404, "Snippet not found"));
-        boolean hasAccess = snippetPermission.get().getUserGrantTypes().stream()
-                .anyMatch(userGrantType -> userGrantType.getUser().equals(user));
-        return Response.withData(hasAccess);
+            return Response.withError(new Error(404, "Snippet permission not found"));
+        return Response.withData(true);
     }
 
     public Response<String> saveRelation(String snippetId, String userId, GrantType grantType) {
-        User user = userRepository.findById(userId).orElse(null);
-        Optional<SnippetPermission> snippetPermissionOpt = snippetPermissionRepository.findById(snippetId);
+        Optional<SnippetPermission> snippetPermissionOpt = snippetPermissionRepository
+                .findBySnippetIdAndUserId(snippetId, userId);
         if (snippetPermissionOpt.isEmpty()) {
             try {
-                // Crear una nueva instancia de SnippetPermission
                 SnippetPermission snippetPermission = new SnippetPermission();
                 snippetPermission.setSnippetId(snippetId);
+                snippetPermission.setUserId(userId);
+                snippetPermission.setGrantType(grantType);
                 snippetPermissionRepository.save(snippetPermission);
-                return createRelation(snippetPermission, user, grantType);
+                return Response.withData("Relationship saved");
             } catch (Exception e) {
                 return Response.withError(new Error(500, e.getMessage()));
             }
         } else {
-            SnippetPermission snippetPermission = snippetPermissionOpt.get();
-            if (userGrantTypeRepository.findByUserAndSnippetPermission(user, snippetPermission) != null) {
-                return Response.withError(new Error(409, "Relationship already exists"));
-            }
-            return createRelation(snippetPermission, user, grantType);
+            return Response.withError(new Error(409, "Relationship already exists"));
         }
     }
 
-    private Response<String> createRelation(SnippetPermission snippetPermission, User user, GrantType grantType) {
+    public Response<Boolean> canEdit(String snippetId, String userId) {
+        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findBySnippetIdAndUserId(snippetId,
+                userId);
+        if (snippetPermission.isEmpty())
+            return Response.withError(new Error(404, "Snippet permission not found"));
+        boolean canEdit = snippetPermission.get().getGrantType().equals(GrantType.WRITE);
+        return Response.withData(canEdit);
+    }
+
+    public Response<String> getSnippetAuthor(String snippetId) {
+        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository
+                .findBySnippetIdAndGrantType(snippetId, GrantType.WRITE);
+        if (snippetPermission.isEmpty())
+            return Response.withError(new Error(404, "Snippet permission not found"));
+        String userId = snippetPermission.get().getUserId();
         try {
-            // Crear una nueva instancia de UserGrantType
-            UserGrantType userGrantType = new UserGrantType();
-            userGrantType.setUser(user);
-            userGrantType.setSnippetPermission(snippetPermission);
-            userGrantType.setGrantType(grantType);
-
-            // Establecer la relación en SnippetPermission
-            List<UserGrantType> userGrantTypes = snippetPermission.getUserGrantTypes();
-            if (userGrantTypes != null) {
-                userGrantTypes.add(userGrantType);
-            } else {
-                userGrantTypes = List.of(userGrantType);
-            }
-            snippetPermission.setUserGrantTypes(userGrantTypes);
-
-            // Guardar la nueva relación
-            snippetPermissionRepository.save(snippetPermission);
-
-            return Response.withData("Relationship saved");
+            String author = userService.getUsernameFromUserId(userId);
+            return Response.withData(author);
         } catch (Exception e) {
             return Response.withError(new Error(500, e.getMessage()));
         }
     }
 
-    public Response<Boolean> canEdit(String snippetId, String userId) {
-        User user = userRepository.findById(userId).orElse(null);
-        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
-        if (snippetPermission.isEmpty())
-            return Response.withError(new Error(404, "Snippet not found"));
-        boolean canEdit = snippetPermission.get().getUserGrantTypes().stream()
-                .anyMatch(userGrantType -> userGrantType.getUser().equals(user)
-                        && userGrantType.getGrantType().equals(GrantType.WRITE));
-        return Response.withData(canEdit);
-    }
-
-    public Response<String> getSnippetAuthor(String snippetId) {
-        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
-        if (snippetPermission.isEmpty())
-            return Response.withError(new Error(404, "Snippet not found"));
-        String author = snippetPermission.get().getUserGrantTypes().stream()
-                .filter(userGrantType -> userGrantType.getGrantType().equals(GrantType.WRITE))
-                .map(userGrantType -> userGrantType.getUser().getUsername()).findFirst().orElse(null);
-        return Response.withData(author);
-    }
-
     public Response<List<SnippetPermissionGrantResponse>> getSnippetGrants(String userId, String filterType) {
-        User user = userRepository.findById(userId).orElse(null);
         FilterType filter = FilterType.valueOf(filterType);
-        List<UserGrantType> userGrantTypes = userGrantTypeRepository.findAllByUser(user);
+        List<SnippetPermission> snippetPermissions = snippetPermissionRepository.findAllByUserId(userId);
         if (filter != FilterType.ALL) {
-            userGrantTypes = userGrantTypes.stream()
-                    .filter(userGrantType -> userGrantType.getGrantType().equals(GrantType.valueOf(filter.name())))
+            snippetPermissions = snippetPermissions.stream().filter(
+                    snippetPermission -> snippetPermission.getGrantType().equals(GrantType.valueOf(filter.name())))
                     .toList();
         }
-        return Response
-                .withData(userGrantTypes.stream().map(UserGrantType::getSnippetPermission).map(snippetPermission -> {
-                    String author = snippetPermission.getUserGrantTypes().stream()
-                            .filter(userGrantType -> userGrantType.getGrantType().equals(GrantType.WRITE))
-                            .map(userGrantType -> userGrantType.getUser().getUsername()).findFirst().orElse(null);
-                    return new SnippetPermissionGrantResponse(snippetPermission.getSnippetId(), author);
-                }).toList());
+        return Response.withData(snippetPermissions.stream()
+                .map(snippetPermission -> new SnippetPermissionGrantResponse(snippetPermission.getSnippetId(),
+                        userService.getUsernameFromUserId(snippetPermission.getUserId())))
+                .toList());
     }
 
     public Response<List<String>> getAllSnippetsByUser(String userId) {
-        User user = userRepository.findById(userId).orElse(null);
-        List<UserGrantType> snippetIds = userGrantTypeRepository.findAllByUserAndGrantType(user, GrantType.WRITE);
-        return Response.withData(snippetIds.stream().map(UserGrantType::getSnippetPermission)
-                .map(SnippetPermission::getSnippetId).toList());
+        List<SnippetPermission> snippetPermissions = snippetPermissionRepository.findAllByUserIdAndGrantType(userId,
+                GrantType.WRITE);
+        return Response.withData(snippetPermissions.stream().map(SnippetPermission::getSnippetId).toList());
     }
 
     public Response<String> deleteRelation(String snippetId, String userId) {
-        User user = userRepository.findById(userId).orElse(null);
-        Optional<SnippetPermission> snippetPermissionOpt = snippetPermissionRepository.findById(snippetId);
+        Optional<SnippetPermission> snippetPermissionOpt = snippetPermissionRepository
+                .findBySnippetIdAndUserId(snippetId, userId);
         if (snippetPermissionOpt.isEmpty())
-            return Response.withError(new Error(404, "Snippet not found"));
-
-        SnippetPermission snippetPermission = snippetPermissionOpt.get();
-        Optional<UserGrantType> userGrantType = snippetPermission.getUserGrantTypes().stream()
-                .filter(ugt -> ugt.getUser().equals(user)).findFirst();
-        if (userGrantType.isEmpty())
-            return Response.withError(new Error(404, "UserGrantTypes not found"));
+            return Response.withError(new Error(404, "Snippet permission not found"));
         try {
-            List<UserGrantType> userGrantTypes = snippetPermission.getUserGrantTypes();
-            userGrantTypes.remove(userGrantType.get());
-            snippetPermission.setUserGrantTypes(userGrantTypes);
-            snippetPermissionRepository.save(snippetPermission);
-            userGrantTypeRepository.delete(userGrantType.get());
+            snippetPermissionRepository.delete(snippetPermissionOpt.get());
             return Response.withData("Relationship deleted");
         } catch (Exception e) {
             return Response.withError(new Error(500, e.getMessage()));
@@ -162,13 +112,11 @@ public class SnippetPermissionService {
     }
 
     public Response<String> deleteAllRelations(String snippetId) {
-        Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findById(snippetId);
-        if (snippetPermission.isEmpty())
-            return Response.withError(new Error(404, "Snippet not found"));
-        List<UserGrantType> userGrantTypes = snippetPermission.get().getUserGrantTypes();
+        List<SnippetPermission> snippetPermissions = snippetPermissionRepository.findAllBySnippetId(snippetId);
+        if (snippetPermissions.isEmpty())
+            return Response.withError(new Error(404, "Snippet permissions not found"));
         try {
-            userGrantTypeRepository.deleteAll(userGrantTypes);
-            snippetPermissionRepository.delete(snippetPermission.get());
+            snippetPermissionRepository.deleteAll(snippetPermissions);
             return Response.withData("All relationships deleted");
         } catch (Exception e) {
             return Response.withError(new Error(500, e.getMessage()));
@@ -183,16 +131,28 @@ public class SnippetPermissionService {
             return Response.withError(new Error(403, "Share Access Denied"));
         }
         try {
-            Response<String> userResponse = userService.getUserId(shareSnippetDTO.getUsername());
-            if (userResponse.isError())
-                return userResponse;
-            String shareId = userResponse.getData();
-            Response<String> response = saveRelation(shareSnippetDTO.getSnippetId(), shareId, GrantType.READ);
+            Response<String> response = saveRelation(shareSnippetDTO.getSnippetId(), shareSnippetDTO.getUserId(),
+                    GrantType.READ);
             if (response.isError())
                 return response;
         } catch (Exception e) {
             return Response.withError(new Error(500, e.getMessage()));
         }
         return Response.withData("Snippet shared");
+    }
+
+    public Response<List<UserInfo>> getUsersPaginated(Integer size, Integer index, String prefix) {
+        try {
+            List<UserDTO> allUsers = userService.getAllUsers();
+            if (allUsers == null) {
+                return Response.withError(new Error(404, "Users not found"));
+            }
+            List<UserInfo> filteredUsers = allUsers.stream().filter(user -> user.getUsername().startsWith(prefix))
+                    .skip((long) index * size).limit(size).toList().stream()
+                    .map(user -> new UserInfo(user.getUsername(), user.getUser_id())).toList();
+            return Response.withData(filteredUsers);
+        } catch (Exception e) {
+            return Response.withError(new Error(500, e.getMessage()));
+        }
     }
 }

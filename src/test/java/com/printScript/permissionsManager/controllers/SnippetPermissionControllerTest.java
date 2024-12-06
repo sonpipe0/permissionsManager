@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -211,6 +212,16 @@ public class SnippetPermissionControllerTest {
     when(snippetPermissionService.getSnippetAuthor(anyString())).thenReturn(Response.withData(""));
 
     ResponseEntity<Object> response = snippetPermissionController.getSnippetAuthor("snippetId");
+
+    assertEquals(200, response.getStatusCode().value());
+  }
+
+  @Test
+  void testGetUsersPaginated() {
+    when(snippetPermissionService.getUsersPaginated(anyInt(), anyInt(), anyString()))
+        .thenReturn(Response.withData(List.of()));
+
+    ResponseEntity<Object> response = snippetPermissionController.getUsersPaginated("1", "10", "");
 
     assertEquals(200, response.getStatusCode().value());
   }

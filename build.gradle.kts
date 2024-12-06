@@ -40,6 +40,9 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.springframework.boot:spring-boot-devtools")
     testImplementation("com.h2database:h2")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("io.projectreactor:reactor-core:3.5.0")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
 }
 
 tasks.withType<Test> {

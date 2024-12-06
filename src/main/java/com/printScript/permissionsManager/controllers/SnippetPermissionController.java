@@ -1,5 +1,6 @@
 package com.printScript.permissionsManager.controllers;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,9 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.printScript.permissionsManager.DTO.Response;
-import com.printScript.permissionsManager.DTO.ShareSnippetDTO;
-import com.printScript.permissionsManager.DTO.SnippetPermissionGrantResponse;
+import com.printScript.permissionsManager.DTO.*;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.services.SnippetPermissionService;
 import com.printScript.permissionsManager.utils.TokenUtils;
@@ -147,5 +146,22 @@ public class SnippetPermissionController {
             return new ResponseEntity<>(response.getError().message(), HttpStatus.valueOf(response.getError().code()));
         }
         return ResponseEntity.ok(response.getData());
+    }
+
+    @GetMapping("/paginated")
+    public ResponseEntity<Object> getUsersPaginated(@RequestParam String page, @RequestParam String pageSize,
+            @RequestParam String prefix) {
+        Integer size = Integer.parseInt(pageSize);
+        Integer index = Integer.parseInt(page);
+        Response<List<UserInfo>> response = snippetPermissionService.getUsersPaginated(size, index, prefix);
+        if (response.getError() != null) {
+            return ResponseEntity.status(500).body(response.getError());
+        }
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("page", page);
+        data.put("page_size", pageSize);
+        data.put("count", response.getData().size());
+        data.put("users", response.getData());
+        return ResponseEntity.ok(data);
     }
 }
