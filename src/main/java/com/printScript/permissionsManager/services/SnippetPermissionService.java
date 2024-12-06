@@ -88,7 +88,8 @@ public class SnippetPermissionService {
         }
         return Response.withData(snippetPermissions.stream()
                 .map(snippetPermission -> new SnippetPermissionGrantResponse(snippetPermission.getSnippetId(),
-                        userService.getUsernameFromUserId(snippetPermission.getUserId())))
+                        userService.getUsernameFromUserId(snippetPermissionRepository.findBySnippetIdAndGrantType(
+                                snippetPermission.getSnippetId(), GrantType.WRITE).get().getUserId())))
                 .toList());
     }
 
