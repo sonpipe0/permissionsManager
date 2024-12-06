@@ -1,8 +1,9 @@
 package com.printScript.permissionsManager.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.printScript.permissionsManager.DTO.UserDTO;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,9 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.printScript.permissionsManager.DTO.UserDTO;
 
 @Service
 public class UserService {
@@ -29,7 +30,7 @@ public class UserService {
     private final RestTemplate restTemplate;
 
     public UserService(JwtDecoder jwtDecoder,
-                       @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String audience) {
+            @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String audience) {
         this.jwtDecoder = jwtDecoder;
         this.audience = audience;
         this.restTemplate = new RestTemplate();
@@ -47,7 +48,8 @@ public class UserService {
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<UserDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, UserDTO[].class);
+            ResponseEntity<UserDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
+                    UserDTO[].class);
             logger.info("Request to get all users completed.");
             return Arrays.asList(response.getBody());
         } catch (Exception e) {
@@ -92,10 +94,9 @@ public class UserService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        String body = "grant_type=client_credentials"
-                + "&client_id=" + System.getenv("AUTH_CLIENT_ID_API")
-                + "&client_secret=" + System.getenv("AUTH_CLIENT_SECRET_API")
-                + "&audience=" + System.getenv("AUTH0_AUDIENCE_API");
+        String body = "grant_type=client_credentials" + "&client_id=" + System.getenv("AUTH_CLIENT_ID_API")
+                + "&client_secret=" + System.getenv("AUTH_CLIENT_SECRET_API") + "&audience="
+                + System.getenv("AUTH0_AUDIENCE_API");
 
         HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
 

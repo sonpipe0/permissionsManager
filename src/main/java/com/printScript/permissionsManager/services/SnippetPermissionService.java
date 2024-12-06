@@ -3,7 +3,6 @@ package com.printScript.permissionsManager.services;
 import java.util.List;
 import java.util.Optional;
 
-import com.printScript.permissionsManager.utils.UserService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +12,7 @@ import com.printScript.permissionsManager.DTO.Error;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.entities.SnippetPermission;
 import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
+import com.printScript.permissionsManager.utils.UserService;
 
 @Service
 public class SnippetPermissionService {
@@ -143,13 +143,9 @@ public class SnippetPermissionService {
             if (allUsers == null) {
                 return Response.withError(new Error(404, "Users not found"));
             }
-            List<UserInfo> filteredUsers = allUsers.stream()
-                    .filter(user -> user.getUsername().startsWith(prefix))
-                    .skip((long) index * size)
-                    .limit(size)
-                    .toList()
-                    .stream().map(user -> new UserInfo(user.getUsername(), user.getUser_id()))
-                    .toList();
+            List<UserInfo> filteredUsers = allUsers.stream().filter(user -> user.getUsername().startsWith(prefix))
+                    .skip((long) index * size).limit(size).toList().stream()
+                    .map(user -> new UserInfo(user.getUsername(), user.getUser_id())).toList();
             return Response.withData(filteredUsers);
         } catch (Exception e) {
             return Response.withError(new Error(500, e.getMessage()));

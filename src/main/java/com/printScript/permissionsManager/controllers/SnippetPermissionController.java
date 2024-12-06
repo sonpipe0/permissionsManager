@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.printScript.permissionsManager.DTO.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.printScript.permissionsManager.DTO.*;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.services.SnippetPermissionService;
 import com.printScript.permissionsManager.utils.TokenUtils;
@@ -150,7 +150,7 @@ public class SnippetPermissionController {
 
     @GetMapping("/paginated")
     public ResponseEntity<Object> getUsersPaginated(@RequestParam String page, @RequestParam String pageSize,
-                                                    @RequestParam String prefix) {
+            @RequestParam String prefix) {
         Integer size = Integer.parseInt(pageSize);
         Integer index = Integer.parseInt(page);
         Response<List<UserInfo>> response = snippetPermissionService.getUsersPaginated(size, index, prefix);

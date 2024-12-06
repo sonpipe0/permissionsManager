@@ -6,8 +6,6 @@ import static org.mockito.Mockito.*;
 import java.util.List;
 import java.util.Optional;
 
-import com.printScript.permissionsManager.DTO.UserInfo;
-import com.printScript.permissionsManager.utils.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,10 +27,12 @@ import org.springframework.test.context.ActiveProfiles;
 import com.printScript.permissionsManager.DTO.Response;
 import com.printScript.permissionsManager.DTO.ShareSnippetDTO;
 import com.printScript.permissionsManager.DTO.SnippetPermissionGrantResponse;
+import com.printScript.permissionsManager.DTO.UserInfo;
 import com.printScript.permissionsManager.TestSecurityConfig;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.entities.SnippetPermission;
 import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
+import com.printScript.permissionsManager.utils.UserService;
 
 import jakarta.transaction.Transactional;
 
@@ -129,15 +129,15 @@ public class SnippetPermissionServiceTest {
         assertTrue(response.getData());
     }
 
-    @Test
-    @Transactional
-    void testGetSnippetAuthor() {
-        when(userService.getUsernameFromUserId(anyString())).thenReturn("username");
+  @Test
+  @Transactional
+  void testGetSnippetAuthor() {
+    when(userService.getUsernameFromUserId(anyString())).thenReturn("username");
 
-        Response<String> response = snippetPermissionService.getSnippetAuthor("snippetId");
+    Response<String> response = snippetPermissionService.getSnippetAuthor("snippetId");
 
-        assertEquals("username", response.getData());
-    }
+    assertEquals("username", response.getData());
+  }
 
     @Test
     @Transactional
@@ -238,12 +238,30 @@ public class SnippetPermissionServiceTest {
         assertEquals(404, response.getError().code());
     }
 
-    @Test
-    void testGetUsersPaginated() {
-        when(userService.getAllUsers()).thenReturn(List.of());
+  @Test
+  void testGetUsersPaginated() {
+    when(userService.getAllUsers()).thenReturn(List.of());
 
-        Response<List<UserInfo>> response = snippetPermissionService.getUsersPaginated(10, 0, "");
+    Response<List<UserInfo>> response = snippetPermissionService.getUsersPaginated(10, 0, "");
 
-        assertEquals(0, response.getData().size());
-    }
+    assertEquals(0, response.getData().size());
+  }
+
+  @Test
+  void testGetUsersPaginated_Exception() {
+    when(userService.getAllUsers()).thenThrow(new RuntimeException("Error"));
+
+    Response<List<UserInfo>> response = snippetPermissionService.getUsersPaginated(10, 0, "");
+
+    assertEquals(500, response.getError().code());
+  }
+
+  @Test
+  void testGetUsersPaginated_UsersNotFound() {
+    when(userService.getAllUsers()).thenReturn(null);
+
+    Response<List<UserInfo>> response = snippetPermissionService.getUsersPaginated(10, 0, "");
+
+    assertEquals(404, response.getError().code());
+  }
 }

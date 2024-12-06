@@ -209,24 +209,20 @@ public class SnippetPermissionControllerTest {
 
   @Test
   void testGetSnippetAuthor() {
-    when(snippetPermissionService.getSnippetAuthor(anyString()))
-        .thenReturn(Response.withData(""));
+    when(snippetPermissionService.getSnippetAuthor(anyString())).thenReturn(Response.withData(""));
 
-    ResponseEntity<Object> response =
-        snippetPermissionController.getSnippetAuthor(
-            "snippetId");
+    ResponseEntity<Object> response = snippetPermissionController.getSnippetAuthor("snippetId");
 
     assertEquals(200, response.getStatusCode().value());
   }
 
   @Test
   void testGetUsersPaginated() {
-      when(snippetPermissionService.getUsersPaginated(anyInt(), anyInt(), anyString()))
-              .thenReturn(Response.withData(List.of()));
+    when(snippetPermissionService.getUsersPaginated(anyInt(), anyInt(), anyString()))
+        .thenReturn(Response.withData(List.of()));
 
-      ResponseEntity<Object> response =
-              snippetPermissionController.getUsersPaginated("1", "10", "");
+    ResponseEntity<Object> response = snippetPermissionController.getUsersPaginated("1", "10", "");
 
-      assertEquals(200, response.getStatusCode().value());
+    assertEquals(200, response.getStatusCode().value());
   }
 }
