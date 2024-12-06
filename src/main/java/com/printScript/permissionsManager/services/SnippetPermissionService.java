@@ -1,8 +1,5 @@
 package com.printScript.permissionsManager.services;
 
-import static com.printScript.permissionsManager.utils.TokenUtils.getUsernameByUserId;
-
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +12,7 @@ import com.printScript.permissionsManager.DTO.Error;
 import com.printScript.permissionsManager.entities.GrantType;
 import com.printScript.permissionsManager.entities.SnippetPermission;
 import com.printScript.permissionsManager.repositories.SnippetPermissionRepository;
+import com.printScript.permissionsManager.utils.UserService;
 
 @Service
 public class SnippetPermissionService {
@@ -22,6 +20,9 @@ public class SnippetPermissionService {
 
     @Autowired
     SnippetPermissionRepository snippetPermissionRepository;
+
+    @Autowired
+    UserService userService;
 
     public Response<Boolean> hasAccess(String snippetId, String userId) {
         Optional<SnippetPermission> snippetPermission = snippetPermissionRepository.findBySnippetIdAndUserId(snippetId,
@@ -59,16 +60,16 @@ public class SnippetPermissionService {
         return Response.withData(canEdit);
     }
 
-    public Response<String> getSnippetAuthor(String snippetId, String token) {
+    public Response<String> getSnippetAuthor(String snippetId) {
         Optional<SnippetPermission> snippetPermission = snippetPermissionRepository
                 .findBySnippetIdAndGrantType(snippetId, GrantType.WRITE);
         if (snippetPermission.isEmpty())
             return Response.withError(new Error(404, "Snippet permission not found"));
         String userId = snippetPermission.get().getUserId();
         try {
-            String author = getUsernameByUserId(userId, token);
+            String author = userService.getUsernameFromUserId(userId);
             return Response.withData(author);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return Response.withError(new Error(500, e.getMessage()));
         }
     }
@@ -83,7 +84,7 @@ public class SnippetPermissionService {
         }
         return Response.withData(snippetPermissions.stream()
                 .map(snippetPermission -> new SnippetPermissionGrantResponse(snippetPermission.getSnippetId(),
-                        snippetPermission.getUserId()))
+                        userService.getUsernameFromUserId(snippetPermission.getUserId())))
                 .toList());
     }
 
@@ -97,7 +98,7 @@ public class SnippetPermissionService {
         Optional<SnippetPermission> snippetPermissionOpt = snippetPermissionRepository
                 .findBySnippetIdAndUserId(snippetId, userId);
         if (snippetPermissionOpt.isEmpty())
-            return Response.withError(new Error(404, "Snippet not found"));
+            return Response.withError(new Error(404, "Snippet permission not found"));
         try {
             snippetPermissionRepository.delete(snippetPermissionOpt.get());
             return Response.withData("Relationship deleted");
@@ -109,7 +110,7 @@ public class SnippetPermissionService {
     public Response<String> deleteAllRelations(String snippetId) {
         List<SnippetPermission> snippetPermissions = snippetPermissionRepository.findAllBySnippetId(snippetId);
         if (snippetPermissions.isEmpty())
-            return Response.withError(new Error(404, "Snippet not found"));
+            return Response.withError(new Error(404, "Snippet permissions not found"));
         try {
             snippetPermissionRepository.deleteAll(snippetPermissions);
             return Response.withData("All relationships deleted");
@@ -134,5 +135,20 @@ public class SnippetPermissionService {
             return Response.withError(new Error(500, e.getMessage()));
         }
         return Response.withData("Snippet shared");
+    }
+
+    public Response<List<UserInfo>> getUsersPaginated(Integer size, Integer index, String prefix) {
+        try {
+            List<UserDTO> allUsers = userService.getAllUsers();
+            if (allUsers == null) {
+                return Response.withError(new Error(404, "Users not found"));
+            }
+            List<UserInfo> filteredUsers = allUsers.stream().filter(user -> user.getUsername().startsWith(prefix))
+                    .skip((long) index * size).limit(size).toList().stream()
+                    .map(user -> new UserInfo(user.getUsername(), user.getUser_id())).toList();
+            return Response.withData(filteredUsers);
+        } catch (Exception e) {
+            return Response.withError(new Error(500, e.getMessage()));
+        }
     }
 }
